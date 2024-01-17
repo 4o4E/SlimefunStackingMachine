@@ -1,0 +1,26 @@
+prefix: "&7[&aStackingMachine&7]"
+debug_prefix: "&7[&aStackingMachineDebug&7]"
+
+debug:
+  console_enable: "&f已临时(修改config.yml永久设置)&a启用&bDebug&f, 下次重启前你将会收到&bDebug&f消息, 再使用一次此指令以&c禁用"
+  console_disable: "&f已临时(修改config.yml永久设置)&c禁用&bDebug&f, 下次重启前你不会收到&bDebug&f消息, 再使用一次此指令以&a启用"
+  player_enable: "&f已&a启用&bDebug&f, 你将会收到&bDebug&f消息, 再使用一次此指令以&c禁用"
+  player_disable: "&f已&c禁用&bDebug&f, 你不会收到&bDebug&f消息, 再使用一次此指令以&a启用"
+
+message:
+  noperm: "&c无权限"
+  non_player: "&c仅玩家可用"
+  unknown_command: "&c未知指令"
+  invalid_args: "&c无效参数"
+
+hook:
+  enable: "扫描到依赖{plugin}, 已启用相关支持"
+  disable: "未扫描到依赖{plugin}, 已禁用"
+
+plugin_command:
+  reload_done: "&a重载完成"
+  export_done: "&a导出完成"
+  usage:
+    reload: "&a/ssm reload &f重载插件"
+    export: "&a/ssm export &f导出所有slimefun机器配方"
+    debug: "&a/ssm debug &f切换debug消息的接受与否"

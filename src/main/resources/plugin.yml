@@ -1,0 +1,18 @@
+name: SlimefunStackingMachine
+version: "${version}"
+main: top.e404.slimefun.stackingmachine.SlimefunStackingMachine
+api-version: 1.16
+depend:
+  - Slimefun
+  - Networks
+authors: [ 404E ]
+commands:
+  stackingmachine:
+    description: 插件主命令
+    aliases:
+      - ssm
+      - sm
+permissions:
+  stackingmachine.admin:
+    default: op
+    description: 允许使用插件指令

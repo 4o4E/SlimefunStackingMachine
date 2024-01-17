@@ -1,0 +1,23 @@
+# 需要的机器 slimefun id
+machine: xxx
+# 所有配方
+recipes:
+  - # 配方名字
+    name: xxx
+    # 单次合成耗时 单位slimefun tick
+    duration: 10
+    # 单次合成耗能 实际耗能 energy * 堆叠数量 * 合成耗时
+    energy: 100
+    # 输入物品
+    input:
+      - type: sf
+        id: xxx
+        amount: 1
+      - type: mc
+        id: xxx
+        amount: 1
+    # 输出物品
+    output:
+      - type: sf
+        id: xxx
+        amount: 1
