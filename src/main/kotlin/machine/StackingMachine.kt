@@ -13,7 +13,6 @@ import io.github.thebusybiscuit.slimefun4.core.attributes.EnergyNetComponent
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockBreakHandler
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockPlaceHandler
 import io.github.thebusybiscuit.slimefun4.core.networks.energy.EnergyNetComponentType
-import io.github.thebusybiscuit.slimefun4.implementation.Slimefun
 import io.github.thebusybiscuit.slimefun4.implementation.SlimefunItems
 import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils
@@ -430,7 +429,7 @@ object StackingMachine : SlimefunItem(
                 val display = recipe.display(magnification)
                 val output = recipe.getResult(magnification)
                 PL.debug { "配方输出: $output" }
-                progresses[b.location] = Progress(1, recipe, output, display)
+                progresses[b.location] = Progress(1, recipe, output, display, magnification)
 
                 val lore = buildList {
                     add("&f进度: 1 / ${recipe.duration} (${String.format("%.2f", 1.0 / recipe.duration)}%)")
@@ -535,5 +534,6 @@ data class Progress(
     var progress: Int,
     val recipe: TemplateRecipe,
     val output: List<ItemStack>,
-    val display: List<String>
+    val display: List<String>,
+    val magnification: Int,
 )

@@ -124,6 +124,7 @@ data class TemplateRecipe(
 
     fun display(magnification: Int): List<String> {
         return buildList {
+            add("&f倍率: $magnification")
             add("&f输入:")
             for (recipeItem in input) {
                 add("&f${recipeItem.display()}x${recipeItem.amount * magnification}")
