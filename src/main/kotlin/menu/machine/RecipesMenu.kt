@@ -112,7 +112,7 @@ class RecipesMenu(val machineInfo: Template, val lastPage: Int) : ChestMenu(
             else item = emptyItem
     }
     private val back = object : MenuButton(this) {
-        override var item = buildItemStack(Material.OAK_SIGN)
+        override var item = buildItemStack(Material.OAK_SIGN, name = "&f返回")
         override fun updateItem() {}
         override fun onClick(slot: Int, event: InventoryClickEvent): Boolean {
             MenuManager.openMenu(MachineMenu(lastPage), event.whoClicked)
