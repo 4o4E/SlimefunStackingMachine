@@ -13,6 +13,7 @@ import io.github.thebusybiscuit.slimefun4.core.attributes.EnergyNetComponent
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockBreakHandler
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockPlaceHandler
 import io.github.thebusybiscuit.slimefun4.core.networks.energy.EnergyNetComponentType
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun
 import io.github.thebusybiscuit.slimefun4.implementation.SlimefunItems
 import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils
@@ -137,6 +138,7 @@ object StackingMachine : SlimefunItem(
         ;
 
         fun getDisplay(vararg lore: String) = buildItemStack(material, name = message, lore = lore.toList())
+        fun getDisplay(lore: List<String>) = buildItemStack(material, name = message, lore = lore)
     }
 
     private var Config.count
@@ -166,14 +168,14 @@ object StackingMachine : SlimefunItem(
         "#   m#n##",
         "#   #OoO#",
         "#########",
-    ) { index: Int, char: Char ->
+    ) { _: Int, char: Char ->
         when (char) {
             // 背景
             '#' -> ChestMenuUtils.getBackground() to DENY_TOUCH
             // 运行状态
             'm' -> buildItemStack(Material.BLACK_STAINED_GLASS_PANE, name = "&f尚未初始化") to DENY_TOUCH
             // 存储状态
-            'n' -> buildItemStack(Material.BLACK_STAINED_GLASS_PANE, name = "&f空") to DENY_TOUCH
+            'n' -> buildItemStack(Material.BLACK_STAINED_GLASS_PANE, name = "&f空机器") to DENY_TOUCH
             // 输入提示
             'I' -> buildItemStack(Material.GREEN_STAINED_GLASS_PANE, name = "&f在空格放入机器") to DENY_TOUCH
             // 输出提示
@@ -187,9 +189,10 @@ object StackingMachine : SlimefunItem(
         val inputSlot = CACHE.getSlot('i')
         val outputSlot = CACHE.getSlot('o')
 
+        val progresses = mutableMapOf<Location, Progress>()
         val tickHandler = object : BlockTicker() {
-            val progresses = mutableMapOf<Location, Progress>()
 
+            @Deprecated("Deprecated in Java")
             override fun tick(b: Block, selfSfItem: SlimefunItem, config: Config) {
                 val selfBlockMenu = BlockStorage.getInventory(b)
                 fun updateMachineState(state: MachineState, vararg lore: String) {
@@ -198,12 +201,18 @@ object StackingMachine : SlimefunItem(
                     CACHE.updateSlots(selfBlockMenu.toInventory(), 'm', item)
                 }
 
+                fun updateMachineState(state: MachineState, lore: List<String>) {
+                    config.state = state
+                    val item = state.getDisplay(lore)
+                    CACHE.updateSlots(selfBlockMenu.toInventory(), 'm', item)
+                }
+
                 fun updateStorageState(id: String?, count: Int) {
                     val item = id?.let {
                         SfHook.getItem(it)?.let { sfi ->
                             ItemStack(sfi.item).editItemMeta { lore = listOf("&f数量: $count".color()) }
                         }
-                    } ?: buildItemStack(Material.ORANGE_STAINED_GLASS_PANE)
+                    } ?: buildItemStack(Material.BLACK_STAINED_GLASS_PANE, name = "&f空机器")
                     CACHE.updateSlots(selfBlockMenu.toInventory(), 'n', item)
                 }
 
@@ -221,15 +230,12 @@ object StackingMachine : SlimefunItem(
                 if (progress != null) {
                     progress.progress++
 
-                    updateMachineState(
-                        MachineState.RUN,
-                        "&f进度: ${progress.progress} / ${progress.recipe.duration} (${
-                            String.format(
-                                "%.2f",
-                                1.0 / progress.recipe.duration
-                            )
-                        }%)"
-                    )
+                    val lore = buildList {
+                        val percentage = String.format("%.2f", 1.0 / progress.recipe.duration)
+                        add("&f进度: ${progress.progress} / ${progress.recipe.duration} ($percentage%)")
+                        addAll(progress.display)
+                    }
+                    updateMachineState(MachineState.RUN, lore)
 
                     // 耗电
                     if (getCharge(b.location) >= progress.recipe.energy) removeCharge(
@@ -241,10 +247,13 @@ object StackingMachine : SlimefunItem(
                         PL.debug { "电力不足" }
                         return
                     }
+                    PL.debug {
+                        val percentage = String.format("%.2f", 1.0 / progress.recipe.duration)
+                        "进度: ${progress.progress} / ${progress.recipe.duration} ($percentage%)"
+                    }
 
                     // 完成
                     if (progress.progress >= progress.recipe.duration) {
-                        PL.debug { progress.output.toString() }
                         progress.output.forEach {
                             root.addItemStack(it)
                             if (it.amount != 0) b.world.dropItem(b.location, it)
@@ -252,14 +261,6 @@ object StackingMachine : SlimefunItem(
                         progresses.remove(b.location)
                         PL.debug { "完成" }
                         return
-                    }
-                    PL.debug {
-                        "进度: ${progress.progress} / ${progress.recipe.duration} (${
-                            String.format(
-                                "%.2f",
-                                1.0 / progress.recipe.duration
-                            )
-                        }%)"
                     }
                     return
                 }
@@ -426,12 +427,16 @@ object StackingMachine : SlimefunItem(
                 }
 
                 // 开始合成
-                progresses[b.location] = Progress(1, recipe, recipe.getResult(magnification))
+                val display = recipe.display(magnification)
+                val output = recipe.getResult(magnification)
+                PL.debug { "配方输出: $output" }
+                progresses[b.location] = Progress(1, recipe, output, display)
 
-                updateMachineState(
-                    MachineState.RUN,
-                    "&f进度: 1 / ${recipe.duration} (${String.format("%.2f", 1.0 / recipe.duration)}%)"
-                )
+                val lore = buildList {
+                    add("&f进度: 1 / ${recipe.duration} (${String.format("%.2f", 1.0 / recipe.duration)}%)")
+                    addAll(display)
+                }
+                updateMachineState(MachineState.RUN, lore)
             }
 
             override fun isSynchronized() = true
@@ -439,15 +444,18 @@ object StackingMachine : SlimefunItem(
         }
         val placeHandler = object : BlockPlaceHandler(false) {
             override fun onPlayerPlace(e: BlockPlaceEvent) {
+                progresses.remove(e.block.location)
                 BlockStorage.getLocationInfo(e.block.location).apply {
                     id = ""
                     count = 0
                     state = MachineState.UNINITIALIZED
                 }
+                BlockStorage.getInventory(e.block).inventory.setItem(44, ChestMenuUtils.getBackground())
             }
         }
         val breakHandler = object : BlockBreakHandler(false, false) {
             override fun onPlayerBreak(e: BlockBreakEvent, item: ItemStack, drops: MutableList<ItemStack>) {
+                progresses.remove(e.block.location)
                 // 正常掉落
                 val blockMenu = BlockStorage.getInventory(e.block)
                 // 模板
@@ -526,5 +534,6 @@ object StackingMachine : SlimefunItem(
 data class Progress(
     var progress: Int,
     val recipe: TemplateRecipe,
-    val output: List<ItemStack>
+    val output: List<ItemStack>,
+    val display: List<String>
 )

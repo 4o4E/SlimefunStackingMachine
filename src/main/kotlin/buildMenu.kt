@@ -40,10 +40,10 @@ data class MenuCache(val rows: Int, val title: String, val map: MutableMap<Char,
     }
 
     fun create(item: SlimefunItem, block: InventoryBlock) = apply {
-        block.createPreset(item, title) {
-            it.setSize(rows * 9)
+        block.createPreset(item, title) { preset ->
+            preset.setSize(rows * 9)
             forEach { _, index, item, handler ->
-                it.addItem(index, item, handler)
+                preset.addItem(index, item, handler)
             }
         }
     }
