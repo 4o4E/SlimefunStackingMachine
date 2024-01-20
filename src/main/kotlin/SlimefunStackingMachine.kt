@@ -7,6 +7,7 @@ import top.e404.slimefun.stackingmachine.config.Config
 import top.e404.slimefun.stackingmachine.config.Lang
 import top.e404.slimefun.stackingmachine.config.TemplateManager
 import top.e404.slimefun.stackingmachine.machine.StackingMachine
+import top.e404.slimefun.stackingmachine.menu.MenuManager
 
 
 class SlimefunStackingMachine : EPlugin() {
@@ -28,10 +29,12 @@ class SlimefunStackingMachine : EPlugin() {
         Commands.register()
         HookManager.register()
         SlimefunStackingMachineAddon.register()
+        MenuManager.register()
         info("&a加载完成")
     }
 
     override fun onDisable() {
+        MenuManager.shutdown()
         cancelAllTask()
         info("&a卸载完成")
     }

@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.inventory.ItemStack
 import top.e404.eplugin.config.KtxConfig.Companion.defaultYaml
 import top.e404.eplugin.config.KtxMultiFileConfig
+import top.e404.eplugin.menu.Displayable
 import top.e404.eplugin.table.Tableable
 import top.e404.eplugin.table.choose
 import top.e404.eplugin.util.buildItemStack
@@ -56,7 +57,18 @@ object TemplateManager : KtxMultiFileConfig<Template>(
 data class Template(
     val machine: String,
     val recipes: List<TemplateRecipe>
-)
+) : Displayable {
+    val machineItem by lazy {
+        SfHook.getItem(machine) ?: throw IllegalArgumentException("unknown machine id: $machine")
+    }
+
+    override val item get() = ItemStack(machineItem.item)
+    override var needUpdate
+        get() = false
+        set(_) {}
+
+    override fun update() {}
+}
 
 /**
  * 模板配方
@@ -138,7 +150,7 @@ data class TemplateRecipe(
 }
 
 @Serializable
-sealed interface RecipeItem : Tableable<ItemStack> {
+sealed interface RecipeItem : Tableable<ItemStack>, Displayable {
     val display: String?
     val id: String
     val amount: Int
@@ -151,6 +163,11 @@ sealed interface RecipeItem : Tableable<ItemStack> {
      * 字符格式预览
      */
     fun display(): String
+    override var needUpdate
+        get() = false
+        set(_) {}
+
+    override fun update() {}
 }
 
 @Serializable
@@ -169,6 +186,8 @@ data class SfRecipeItem(
     override fun generator() = itemTemplate.clone()
     override fun match(item: ItemStack) = SfHook.getId(item)?.equals(id, true) == true
     override fun display() = display ?: itemTemplate.name ?: itemTemplate.type.name
+
+    override val item get() = itemTemplate.clone()
 }
 
 @Serializable
@@ -190,6 +209,8 @@ data class McRecipeItem(
     override fun generator() = itemTemplate.clone()
     override fun match(item: ItemStack) = item.type.name.equals(id, true)
     override fun display() = display ?: itemTemplate.type.name
+
+    override val item get() = itemTemplate.clone()
 }
 
 private fun ItemStack.stacking(magnification: Int) = buildList {

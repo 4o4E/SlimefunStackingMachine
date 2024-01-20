@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "top.e404"
-version = "1.0.1"
+version = "1.1.0"
 val epluginVersion = "1.2.0"
 
 fun kotlinx(id: String, version: String) = "org.jetbrains.kotlinx:kotlinx-$id:$version"
@@ -30,6 +30,7 @@ dependencies {
     // eplugin
     implementation(eplugin("core"))
     implementation(eplugin("serialization"))
+    implementation(eplugin("menu"))
     implementation(eplugin("hook-slimefun"))
     // sf
     // compileOnly("com.github.Slimefun:Slimefun4:RC-35")
