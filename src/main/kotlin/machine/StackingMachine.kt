@@ -17,7 +17,6 @@ import io.github.thebusybiscuit.slimefun4.implementation.SlimefunItems
 import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.interfaces.InventoryBlock
 import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker
 import me.mrCookieSlime.Slimefun.api.BlockStorage
@@ -68,9 +67,9 @@ object StackingMachine : SlimefunItem(
         left, down, right,
     )
 ), InventoryBlock, EnergyNetComponent {
-    private const val COUNT_KEY = "count"
-    private const val ID_KEY = "id"
-    private const val STATE_KEY = "state"
+    private const val COUNT_KEY = "internal_machine_count"
+    private const val ID_KEY = "internal_machine_id"
+    private const val STATE_KEY = "stack_machine_state"
 
     internal enum class MachineState(
         private val material: Material,
@@ -167,7 +166,7 @@ object StackingMachine : SlimefunItem(
         "#   m#n##",
         "#   #OoO#",
         "#########",
-    ) { _: Int, char: Char ->
+    ) { index: Int, char: Char ->
         when (char) {
             // 背景
             '#' -> ChestMenuUtils.getBackground() to DENY_TOUCH
@@ -202,9 +201,9 @@ object StackingMachine : SlimefunItem(
                 fun updateStorageState(id: String?, count: Int) {
                     val item = id?.let {
                         SfHook.getItem(it)?.let { sfi ->
-                            ItemStack(sfi.item).apply { editItemMeta { lore = listOf("&f数量: $count".color()) } }
+                            ItemStack(sfi.item).editItemMeta { lore = listOf("&f数量: $count".color()) }
                         }
-                    } ?: buildItemStack(Material.AIR)
+                    } ?: buildItemStack(Material.ORANGE_STAINED_GLASS_PANE)
                     CACHE.updateSlots(selfBlockMenu.toInventory(), 'n', item)
                 }
 
@@ -456,29 +455,35 @@ object StackingMachine : SlimefunItem(
                     .mapNotNull { blockMenu.getItemInSlot(it) }
                     .filter { it.type != Material.AIR }
                     .let(drops::addAll)
-                val machineOut = blockMenu.getItemInSlot(CACHE.getSlot('o'))
-                if (machineOut != null && machineOut.type != Material.AIR) {
-                    drops.add(machineOut)
-                }
 
+                // 输出
+                val output = blockMenu.getItemInSlot(outputSlot)
+                if (output != null && output.type != Material.AIR) drops.add(output)
+
+                // 输入
+                val input = blockMenu.getItemInSlot(inputSlot)
+                if (input != null && input.type != Material.AIR) drops.add(input)
+
+                // 内部缓存
                 val config = BlockStorage.getLocationInfo(e.block.location)
-                val id = config.getString("machine")
+                val id = config.id
                 if (id == null) {
                     PL.debug { "玩家${e.player.name}破坏没有指定机器的批量堆叠机器${e.block.location.asString}" }
+                    PL.debug { "掉落: $drops" }
                     return
                 }
                 val count = config.count
                 val slimefunItem = getById(id)
                 if (slimefunItem == null) {
                     PL.debug { "玩家${e.player.name}破坏批量堆叠机器${e.block.location.asString}时无法找到${id}x${count}" }
+                    PL.debug { "掉落: $drops" }
                     return
                 }
-                val out = blockMenu.getItemInSlot(outputSlot)
-                if (out != null && out.type != Material.AIR) drops.add(out)
                 repeat(count / slimefunItem.item.maxStackSize) {
                     drops.add(slimefunItem.item.clone().apply { amount = maxStackSize })
                 }
                 drops.add(slimefunItem.item.clone().apply { amount = count % slimefunItem.item.maxStackSize })
+                PL.debug { "掉落: $drops" }
             }
         }
 

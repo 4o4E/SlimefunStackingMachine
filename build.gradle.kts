@@ -32,7 +32,8 @@ dependencies {
     implementation(eplugin("serialization"))
     implementation(eplugin("hook-slimefun"))
     // sf
-    compileOnly("com.github.Slimefun:Slimefun4:RC-35")
+    // compileOnly("com.github.Slimefun:Slimefun4:RC-35")
+    compileOnly(files("run/plugins/Slimefun-2023.10.20-release.jar"))
     // compileOnly(files("run/plugins/Slimefun-2023.10.20-release.jar"))
     compileOnly("io.github.sefiraat:networks:MODIFIED_1.2.0")
 }
