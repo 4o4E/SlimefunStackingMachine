@@ -4,12 +4,14 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.bukkit.command.CommandSender
 import org.bukkit.inventory.ItemStack
+import top.e404.eplugin.EPlugin.Companion.color
 import top.e404.eplugin.config.KtxConfig.Companion.defaultYaml
 import top.e404.eplugin.config.KtxMultiFileConfig
 import top.e404.eplugin.menu.Displayable
 import top.e404.eplugin.table.Tableable
 import top.e404.eplugin.table.choose
 import top.e404.eplugin.util.buildItemStack
+import top.e404.eplugin.util.editItemMeta
 import top.e404.eplugin.util.materialOf
 import top.e404.eplugin.util.name
 import top.e404.slimefun.stackingmachine.PL
@@ -62,7 +64,9 @@ data class Template(
         SfHook.getItem(machine) ?: throw IllegalArgumentException("unknown machine id: $machine")
     }
 
-    override val item get() = ItemStack(machineItem.item)
+    override val item get() = ItemStack(machineItem.item).editItemMeta {
+        lore = listOf("&f共 &6${recipes.size} &f个配方".color())
+    }
     override var needUpdate
         get() = false
         set(_) {}
