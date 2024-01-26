@@ -38,7 +38,7 @@ import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.SfHook
 import top.e404.slimefun.stackingmachine.buildMenu
 import top.e404.slimefun.stackingmachine.config.TemplateManager
-import top.e404.slimefun.stackingmachine.config.TemplateRecipe
+import top.e404.slimefun.stackingmachine.template.TemplateRecipe
 import kotlin.math.min
 
 val categoryId by lazy { NamespacedKey(PL, "STACKING_MACHINE_CATEGORY") }
@@ -376,13 +376,6 @@ object StackingMachine : SlimefunItem(
                     .filter { it.type != Material.AIR }
                     .map(ItemStack::clone)
 
-                // 缺少模板
-                if (inputTemplate.isEmpty()) {
-                    updateMachineState(MachineState.LAKE_TEMPLATE)
-                    PL.debug { "缺少模板" }
-                    return
-                }
-
                 val machineTemplate = TemplateManager.templates[internalMachineId]
                 if (machineTemplate == null) {
                     updateMachineState(MachineState.UNSUPPORTED_MACHINE)
@@ -390,8 +383,20 @@ object StackingMachine : SlimefunItem(
                     return
                 }
 
-                val recipe = machineTemplate.recipes.firstOrNull { recipe ->
-                    recipe.match(inputTemplate)
+                // 空输入模板
+                val recipe = if (inputTemplate.isEmpty()) {
+                    // 检查empty配方
+                    machineTemplate.empty.firstOrNull { recipe ->
+                        recipe.conditions.all { it.condition(b, root) }
+                    } ?: run {
+                        updateMachineState(MachineState.LAKE_TEMPLATE)
+                        PL.debug { "缺少模板" }
+                        return
+                    }
+                } else {
+                    machineTemplate.recipes.firstOrNull { recipe ->
+                        recipe.conditions.all { it.condition(b, root) } && recipe.match(inputTemplate)
+                    }
                 }
                 if (recipe == null) {
                     updateMachineState(MachineState.UNKNOWN_RECIPE)

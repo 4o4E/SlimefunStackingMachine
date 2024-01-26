@@ -2,9 +2,9 @@ package top.e404.slimefun.stackingmachine
 
 import kotlinx.serialization.Serializable
 import org.bukkit.inventory.ItemStack
-import top.e404.slimefun.stackingmachine.config.McRecipeItem
-import top.e404.slimefun.stackingmachine.config.RecipeItem
-import top.e404.slimefun.stackingmachine.config.SfRecipeItem
+import top.e404.slimefun.stackingmachine.template.recipe.McRecipeItem
+import top.e404.slimefun.stackingmachine.template.recipe.RecipeItem
+import top.e404.slimefun.stackingmachine.template.recipe.SfRecipeItem
 
 @Serializable
 data class MachineRecipes(

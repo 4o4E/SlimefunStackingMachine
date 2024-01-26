@@ -1,14 +1,42 @@
 # 需要的机器 slimefun id
-machine: xxx
-# 所有配方
-recipes:
+machine: ELECTRIC_INGOT_FACTORY_3
+# 无输入的配方
+# 可以放多个配方, 通过条件在对应的地方使用对应的配方
+empty:
   - # 配方名字
     name: xxx
     # 单次合成耗时 单位slimefun tick
     duration: 10
     # 单次合成耗能 实际耗能 energy * 堆叠数量 * 合成耗时
     energy: 100
-    # 输入物品
+    # 配方匹配的条件
+    condition:
+      - type: world_name
+        value: kd_the_nether
+        display: "该配方仅在地狱生效" # 显示在菜单中的配方条件
+    # 输出物品
+    output:
+      - type: sf
+        id: ELECTRIC_INGOT_FACTORY_3
+        amount: 1
+      - type: weight # 按权重选择一个物品, 如果需要百分比选择是否生成一个物品可以用air占位
+        list:
+          - type: sf
+            id: ELECTRIC_INGOT_FACTORY_3
+            amount: 1
+            weight: 3 # 权重 此处是 3 / 3 + 5 = 3 / 8
+          - type: mc
+            id: air
+            amount: 1
+            weight: 5 # 权重 此处是 5 / 3 + 5 = 5 / 8
+        display: "" # 可选 不写则根据list自动生成
+
+# 所有配方
+# 支持条件
+recipes:
+  - name: xxx
+    duration: 10
+    energy: 100
     input:
       - type: sf
         id: xxx
@@ -16,7 +44,6 @@ recipes:
       - type: mc
         id: xxx
         amount: 1
-    # 输出物品
     output:
       - type: sf
         id: xxx

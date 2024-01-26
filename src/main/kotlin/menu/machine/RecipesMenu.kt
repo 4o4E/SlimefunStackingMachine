@@ -12,7 +12,7 @@ import top.e404.eplugin.util.buildItemStack
 import top.e404.eplugin.util.emptyItem
 import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.config.Lang
-import top.e404.slimefun.stackingmachine.config.RecipeItem
+import top.e404.slimefun.stackingmachine.template.recipe.RecipeItem
 import top.e404.slimefun.stackingmachine.config.Template
 import top.e404.slimefun.stackingmachine.menu.MenuManager
 import kotlin.math.max

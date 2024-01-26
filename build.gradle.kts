@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "top.e404"
-version = "1.2.0"
+version = "1.3.0"
 val epluginVersion = "1.2.0"
 
 fun kotlinx(id: String, version: String) = "org.jetbrains.kotlinx:kotlinx-$id:$version"
@@ -17,7 +17,9 @@ repositories {
     // sf
     maven("https://jitpack.io/")
     // spigot
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+    // maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+    // paper
+    maven("https://repo.papermc.io/repository/maven-public/")
     // papi
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     mavenCentral()
@@ -26,11 +28,13 @@ repositories {
 
 dependencies {
     // spigot
-    compileOnly("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
+    // compileOnly("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
     // eplugin
     implementation(eplugin("core"))
     implementation(eplugin("serialization"))
     implementation(eplugin("menu"))
+    implementation(eplugin("adventure"))
     implementation(eplugin("hook-slimefun"))
     // sf
     // compileOnly("com.github.Slimefun:Slimefun4:RC-35")
@@ -41,11 +45,11 @@ dependencies {
 
 tasks {
     withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "17"
     }
 
     withType<JavaCompile> {
-        targetCompatibility = "1.8"
+        targetCompatibility = "17"
     }
 
     processResources {
