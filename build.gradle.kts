@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "top.e404"
-version = "1.1.0"
+version = "1.2.0"
 val epluginVersion = "1.2.0"
 
 fun kotlinx(id: String, version: String) = "org.jetbrains.kotlinx:kotlinx-$id:$version"
@@ -34,8 +34,8 @@ dependencies {
     implementation(eplugin("hook-slimefun"))
     // sf
     // compileOnly("com.github.Slimefun:Slimefun4:RC-35")
-    compileOnly(files("run/plugins/Slimefun-2023.10.20-release.jar"))
-    // compileOnly(files("run/plugins/Slimefun-2023.10.20-release.jar"))
+    compileOnly(files("run/plugins/Slimefun-eabaa21-Beta.jar"))
+    // compileOnly(files("run/plugins/Slimefun-2023.10.20-release.jarrt"))
     compileOnly("io.github.sefiraat:networks:MODIFIED_1.2.0")
 }
 

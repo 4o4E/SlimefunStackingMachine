@@ -409,9 +409,9 @@ object StackingMachine : SlimefunItem(
                         return
                     }
                     val (item, totalCount) = entry
-                    item to totalCount / item.amount
+                    Triple(recipeItem, item, totalCount / item.amount)
                 }
-                val magnification = min(calculatedInput.minOf { it.second }, count)
+                val magnification = min(calculatedInput.minOf { it.third }, count)
                 if (magnification <= 0) {
                     updateMachineState(MachineState.LAKE_MATERIAL)
                     PL.debug { "缺少材料" }
@@ -421,8 +421,8 @@ object StackingMachine : SlimefunItem(
                 PL.debug { "倍率: $magnification" }
 
                 // 抽取原料
-                for ((input) in calculatedInput) {
-                    root.getItemStack(ItemRequest(input, input.amount * magnification))
+                for ((recipeItem, input) in calculatedInput) {
+                    root.getItemStack(ItemRequest(input, recipeItem.amount * magnification))
                 }
 
                 // 开始合成
