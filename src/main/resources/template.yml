@@ -22,7 +22,7 @@ empty:
       - type: weight # 按权重选择一个物品, 如果需要百分比选择是否生成一个物品可以用air占位
         list:
           - type: sf
-            id: ELECTRIC_INGOT_FACTORY_3
+            id: IRON_DUST
             amount: 1
             weight: 3 # 权重 此处是 3 / 3 + 5 = 3 / 8
           - type: mc

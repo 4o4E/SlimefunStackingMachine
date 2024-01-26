@@ -1,8 +1,10 @@
 package top.e404.slimefun.stackingmachine.template
 
 import kotlinx.serialization.Serializable
+import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
+import top.e404.eplugin.EPlugin.Companion.color
 import top.e404.slimefun.stackingmachine.template.condition.RecipeCondition
 import top.e404.slimefun.stackingmachine.template.recipe.ExactRecipeItem
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeItem
@@ -80,16 +82,16 @@ data class TemplateRecipe(
         }
     }
 
-    fun display(magnification: Int): List<String> {
+    fun display(magnification: Int): List<Component> {
         return buildList {
-            add("&f倍率: $magnification")
-            add("&f输入:")
+            add(Component.text("&f倍率: $magnification".color()))
+            add(Component.text("&f输入:".color()))
             for (item in input) {
-                add("&f${item.display(magnification)}")
+                add(item.display(magnification))
             }
-            add("&f输出:")
+            add(Component.text("&f输出:".color()))
             for (item in output) {
-                add("&f${item.display(magnification)}")
+                add(item.display(magnification))
             }
         }
     }

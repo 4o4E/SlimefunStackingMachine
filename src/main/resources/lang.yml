@@ -34,6 +34,16 @@ menu:
       name: "&6下一页"
       lore: |-
         &f点击前往下一页
+  items:
+    title: "&6配方物品详细"
+    prev:
+      name: "&6上一页"
+      lore: |-
+        &f点击前往上一页
+    next:
+      name: "&6下一页"
+      lore: |-
+        &f点击前往下一页
 
 hook:
   enable: "扫描到依赖{plugin}, 已启用相关支持"

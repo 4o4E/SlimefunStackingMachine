@@ -20,6 +20,7 @@ import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.interfaces.InventoryBlock
 import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker
 import me.mrCookieSlime.Slimefun.api.BlockStorage
+import net.kyori.adventure.text.Component
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -137,7 +138,7 @@ object StackingMachine : SlimefunItem(
         ;
 
         fun getDisplay(vararg lore: String) = buildItemStack(material, name = message, lore = lore.toList())
-        fun getDisplay(lore: List<String>) = buildItemStack(material, name = message, lore = lore)
+        fun getDisplay(lore: List<Component>) = buildItemStack(material, name = message).apply { lore(lore) }
     }
 
     private var Config.count
@@ -200,7 +201,7 @@ object StackingMachine : SlimefunItem(
                     CACHE.updateSlots(selfBlockMenu.toInventory(), 'm', item)
                 }
 
-                fun updateMachineState(state: MachineState, lore: List<String>) {
+                fun updateMachineState(state: MachineState, lore: List<Component>) {
                     config.state = state
                     val item = state.getDisplay(lore)
                     CACHE.updateSlots(selfBlockMenu.toInventory(), 'm', item)
@@ -230,24 +231,25 @@ object StackingMachine : SlimefunItem(
                     progress.progress++
 
                     val lore = buildList {
-                        val percentage = String.format("%.2f", 1.0 / progress.recipe.duration)
-                        add("&f进度: ${progress.progress} / ${progress.recipe.duration} ($percentage%)")
+                        val percentage = String.format("%.2f", 100.0 * progress.progress / progress.recipe.duration)
+                        add(Component.text("&f进度: ${progress.progress} / ${progress.recipe.duration} ($percentage%)".color()))
                         addAll(progress.display)
                     }
                     updateMachineState(MachineState.RUN, lore)
 
                     // 耗电
-                    if (getCharge(b.location) >= progress.recipe.energy) removeCharge(
-                        b.location,
-                        progress.recipe.energy
-                    )
+                    if (getCharge(b.location) >= progress.recipe.energy * progress.magnification) {
+                        repeat(progress.magnification) {
+                            removeCharge(b.location, progress.recipe.energy)
+                        }
+                    }
                     else {
                         updateMachineState(MachineState.LAKE_ENERGY)
                         PL.debug { "电力不足" }
                         return
                     }
                     PL.debug {
-                        val percentage = String.format("%.2f", 1.0 / progress.recipe.duration)
+                        val percentage = String.format("%.2f", 100.0 * progress.progress / progress.recipe.duration)
                         "进度: ${progress.progress} / ${progress.recipe.duration} ($percentage%)"
                     }
 
@@ -384,19 +386,32 @@ object StackingMachine : SlimefunItem(
                 }
 
                 // 空输入模板
-                val recipe = if (inputTemplate.isEmpty()) {
+                if (inputTemplate.isEmpty()) {
                     // 检查empty配方
-                    machineTemplate.empty.firstOrNull { recipe ->
+                    val r = machineTemplate.empty.firstOrNull { recipe ->
                         recipe.conditions.all { it.condition(b, root) }
                     } ?: run {
                         updateMachineState(MachineState.LAKE_TEMPLATE)
                         PL.debug { "缺少模板" }
                         return
                     }
-                } else {
-                    machineTemplate.recipes.firstOrNull { recipe ->
-                        recipe.conditions.all { it.condition(b, root) } && recipe.match(inputTemplate)
+
+                    // 开始合成
+                    val magnification = count
+                    val display = r.display(magnification)
+                    val output = r.getResult(magnification)
+                    PL.debug { "配方输出: $output" }
+                    progresses[b.location] = Progress(1, r, output, display, magnification)
+
+                    val lore = buildList {
+                        add(Component.text("&f进度: 1 / ${r.duration} (${String.format("%.2f", 100.0 / r.duration)}%)".color()))
+                        addAll(display)
                     }
+                    updateMachineState(MachineState.RUN, lore)
+                    return
+                }
+                val recipe =  machineTemplate.recipes.firstOrNull { recipe ->
+                    recipe.conditions.all { it.condition(b, root) } && recipe.match(inputTemplate)
                 }
                 if (recipe == null) {
                     updateMachineState(MachineState.UNKNOWN_RECIPE)
@@ -437,7 +452,7 @@ object StackingMachine : SlimefunItem(
                 progresses[b.location] = Progress(1, recipe, output, display, magnification)
 
                 val lore = buildList {
-                    add("&f进度: 1 / ${recipe.duration} (${String.format("%.2f", 1.0 / recipe.duration)}%)")
+                    add(Component.text("&f进度: 1 / ${recipe.duration} (${String.format("%.2f", 100.0 / recipe.duration)}%)".color()))
                     addAll(display)
                 }
                 updateMachineState(MachineState.RUN, lore)
@@ -532,13 +547,13 @@ object StackingMachine : SlimefunItem(
     override fun getOutputSlots() = intArrayOf()
 
     override fun getEnergyComponentType() = EnergyNetComponentType.CONSUMER
-    override fun getCapacity() = 100000000
+    override fun getCapacity() = 100000
 }
 
 data class Progress(
     var progress: Int,
     val recipe: TemplateRecipe,
     val output: List<ItemStack>,
-    val display: List<String>,
+    val display: List<Component>,
     val magnification: Int,
 )

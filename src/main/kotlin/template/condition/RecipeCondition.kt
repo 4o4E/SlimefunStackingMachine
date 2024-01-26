@@ -28,9 +28,9 @@ sealed interface RecipeCondition {
 @SerialName("world_name")
 data class WorldNameCondition(
     override val display: String,
-    val names: List<String>
+    val worlds: List<String>
 ) : RecipeCondition {
-    override fun condition(block: Block, network: NetworkRoot) = block.world.name in names
+    override fun condition(block: Block, network: NetworkRoot) = block.world.name in worlds
 }
 
 @Serializable

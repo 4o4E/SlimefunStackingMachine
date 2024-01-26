@@ -2,10 +2,13 @@ package top.e404.slimefun.stackingmachine.template.recipe
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.JoinConfiguration
+import org.bukkit.Material
+import org.bukkit.enchantments.Enchantment
+import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
+import top.e404.eplugin.EPlugin.Companion.color
 import top.e404.eplugin.adventure.display
 import top.e404.eplugin.menu.Displayable
 import top.e404.eplugin.table.chooseBy
@@ -78,16 +81,13 @@ data class WeightRecipeItem(
         list.map { it.display(magnification) }
     )
 
-    @Transient
-    private var index = 0
-
-    override val item: ItemStack
-        get() {
-            val clone = list[index].item.clone()
-            index += 1
-            if (index >= list.size) index = 0
-            return clone
+    override val item by lazy {
+        buildItemStack(Material.CHEST, name = "${list.size}种产物中随机产一个") {
+            lore(list.map { it.display(1) })
+            addEnchant(Enchantment.DURABILITY, 1, true)
+            addItemFlags(ItemFlag.HIDE_ENCHANTS)
         }
+    }
 
     override fun valid(location: RecipeLocationBuilder) =
         if (list.isEmpty()) listOf(location.build() to "随机产物随机列表为空")
@@ -136,7 +136,9 @@ data class McRecipeItem(
 
     override fun getItemSingle() = itemTemplate.clone()
     override fun match(item: ItemStack) = item.type.name.equals(id, true)
-    override fun display(magnification: Int) = (display?.let { Component.text(it) } ?: itemTemplate.display)
+    override fun display(magnification: Int) = (display
+        ?.let { Component.text(it) }
+        ?: if (itemTemplate.type == Material.AIR) Component.text("&f空气".color()) else itemTemplate.display)
         .append(Component.text("x${amount * magnification}"))
 
     override val item get() = itemTemplate.clone()
