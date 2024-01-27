@@ -37,7 +37,7 @@ sealed interface RecipeItem : Displayable {
     /**
      * 检查该物品格式是否正确
      */
-    fun valid(location: RecipeLocationBuilder): List<Pair<RecipeLocation, String>>
+    fun valid(location: RecipeLocation): List<Pair<RecipeLocation, String>>
 
     fun exact(): ExactRecipeItem
 }
@@ -89,8 +89,8 @@ data class WeightRecipeItem(
         }
     }
 
-    override fun valid(location: RecipeLocationBuilder) =
-        if (list.isEmpty()) listOf(location.build() to "随机产物随机列表为空")
+    override fun valid(location: RecipeLocation) =
+        if (list.isEmpty()) listOf(location to "随机产物随机列表为空")
         else list.flatMapIndexed { index, exact -> exact.valid(location.copy(weightIndex = index)) }
 
     override fun exact() = list.chooseBy { it.weight }
@@ -113,8 +113,8 @@ data class SfRecipeItem(
     override fun display(magnification: Int) = Component.text("${display ?: sfItem.itemName}x${amount * magnification}")
 
     override val item get() = itemTemplate.clone()
-    override fun valid(location: RecipeLocationBuilder) = buildList {
-        val l = location.build()
+    override fun valid(location: RecipeLocation) = buildList {
+        val l = location
         if (amount <= 0) add(l to "amount必须大于0")
         if (weight < 1) add(l to "weight必须大于0")
         if (SfHook.getItem(id) == null) add(l to "无效slimefun物品id: $id")
@@ -142,10 +142,9 @@ data class McRecipeItem(
         .append(Component.text("x${amount * magnification}"))
 
     override val item get() = itemTemplate.clone()
-    override fun valid(location: RecipeLocationBuilder) = buildList {
-        val l = location.build()
-        if (amount <= 0) add(l to "amount必须大于0")
-        if (weight < 1) add(l to "weight必须大于0")
-        if (materialOf(id) == null) add(l to "无效物品id: $id")
+    override fun valid(location: RecipeLocation) = buildList {
+        if (amount <= 0) add(location to "amount必须大于0")
+        if (weight < 1) add(location to "weight必须大于0")
+        if (materialOf(id) == null) add(location to "无效物品id: $id")
     }
 }

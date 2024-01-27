@@ -39,6 +39,7 @@ import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.SfHook
 import top.e404.slimefun.stackingmachine.buildMenu
 import top.e404.slimefun.stackingmachine.config.TemplateManager
+import top.e404.slimefun.stackingmachine.config.stacking
 import top.e404.slimefun.stackingmachine.template.TemplateRecipe
 import kotlin.math.min
 
@@ -474,6 +475,12 @@ object StackingMachine : SlimefunItem(
         }
         val breakHandler = object : BlockBreakHandler(false, false) {
             override fun onPlayerBreak(e: BlockBreakEvent, item: ItemStack, drops: MutableList<ItemStack>) {
+                val progress = progresses[e.block.location]
+                if (progress != null) {
+                    for (input in progress.recipe.input) {
+                        drops.addAll(input.getItemSingle().stacking(input.amount * progress.magnification))
+                    }
+                }
                 progresses.remove(e.block.location)
                 // 正常掉落
                 val blockMenu = BlockStorage.getInventory(e.block)

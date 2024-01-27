@@ -11,7 +11,7 @@ import top.e404.eplugin.menu.Displayable
 import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.SfHook
 import top.e404.slimefun.stackingmachine.template.TemplateRecipe
-import top.e404.slimefun.stackingmachine.template.recipe.RecipeLocationBuilder
+import top.e404.slimefun.stackingmachine.template.recipe.RecipeLocation
 
 object TemplateManager : KtxMultiFileConfig<Template>(
     plugin = PL,
@@ -37,7 +37,7 @@ object TemplateManager : KtxMultiFileConfig<Template>(
         super.load(sender)
         val loadResult = mutableMapOf<String, Template>()
         for ((file, template) in this.config) {
-            val valid = template.valid(RecipeLocationBuilder(file, template))
+            val valid = template.valid(RecipeLocation(file, template))
             for ((location, message) in valid) {
                 PL.sendAndWarn(sender, location.warn(message))
             }
@@ -59,8 +59,8 @@ object TemplateManager : KtxMultiFileConfig<Template>(
 @Serializable
 data class Template(
     val machine: String,
-    val empty: List<TemplateRecipe>,
-    val recipes: List<TemplateRecipe>,
+    val empty: List<TemplateRecipe> = emptyList(),
+    val recipes: List<TemplateRecipe> = emptyList(),
 ) : Displayable {
     val machineItem by lazy {
         SfHook.getItem(machine) ?: throw IllegalArgumentException("unknown machine id: $machine")
@@ -68,7 +68,7 @@ data class Template(
 
     override val item
         get() = ItemStack(machineItem.item).apply {
-            lore(listOf(Component.text("&f共 &6${recipes.size} &f个配方".color())))
+            lore(listOf(Component.text("&f共 &6${recipes.size + empty.size} &f个配方".color())))
         }
     override var needUpdate
         get() = false
@@ -76,7 +76,7 @@ data class Template(
 
     override fun update() {}
 
-    fun valid(location: RecipeLocationBuilder) = buildList {
+    fun valid(location: RecipeLocation) = buildList {
         for ((i, recipe) in empty.withIndex()) {
             addAll(recipe.valid(location.copy(isEmpty = true, recipes = empty, recipeIndex = i)))
         }
@@ -86,7 +86,7 @@ data class Template(
     }
 }
 
-private fun ItemStack.stacking(magnification: Int) = buildList {
+fun ItemStack.stacking(magnification: Int) = buildList {
     val total = magnification * amount
     repeat(total / maxStackSize) {
         add(clone().apply { amount = maxStackSize })
@@ -95,7 +95,7 @@ private fun ItemStack.stacking(magnification: Int) = buildList {
     if (rest != 0) add(clone().apply { amount = rest })
 }
 
-private fun Collection<ItemStack>.merge(): List<ItemStack> {
+fun Collection<ItemStack>.merge(): List<ItemStack> {
     val items = mutableMapOf<ItemStack, Int>()
     for (i in this) {
         val key = items.keys.firstOrNull { i.isSimilar(it) }

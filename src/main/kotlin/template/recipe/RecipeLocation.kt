@@ -5,35 +5,21 @@ import top.e404.slimefun.stackingmachine.template.TemplateRecipe
 import java.io.File
 
 data class RecipeLocation(
-    var file: File,
-    var template: Template,
-    var isEmpty: Boolean,
-    var recipes: List<TemplateRecipe>,
-    var recipeIndex: Int,
-    var isInput: Boolean,
-    var items: List<RecipeItem>,
-    var itemIndex: Int,
-    var weightIndex: Int? = null,
+    val file: File,
+    val template: Template,
+    val isEmpty: Boolean? = null,
+    val recipes: List<TemplateRecipe>? = null,
+    val recipeIndex: Int? = null,
+    val isInput: Boolean? = null,
+    val items: List<RecipeItem>? = null,
+    val itemIndex: Int? = null,
+    val weightIndex: Int? = null
 ) {
-    fun warn(message: String) = """配方校验失败: $message
-        |模板: ${template.machine} (${file.absolutePath})
-        |配方: ${recipes[recipeIndex].name}
-        |物品: ${if (isInput) "input" else "output"}[$itemIndex]${if (weightIndex != null) "[$weightIndex]" else ""}
-    """.trimMargin()
-}
-
-data class RecipeLocationBuilder(
-    var file: File,
-    var template: Template,
-    var isEmpty: Boolean? = null,
-    var recipes: List<TemplateRecipe>? = null,
-    var recipeIndex: Int? = null,
-    var isInput: Boolean? = null,
-    var items: List<RecipeItem>? = null,
-    var itemIndex: Int? = null,
-    var weightIndex: Int? = null
-) {
-    fun build() = RecipeLocation(
-        file, template, isEmpty!!, recipes!!, recipeIndex!!, isInput!!, items!!, itemIndex!!, weightIndex
-    )
+    fun warn(message: String) = buildString {
+        appendLine("配方校验失败: $message")
+        appendLine("文件: ${file.invariantSeparatorsPath}")
+        appendLine("模板: ${template.machine}")
+        if (recipes != null) appendLine("配方: ${recipes[recipeIndex!!].name}")
+        if (isInput != null) appendLine("物品: ${if (isInput) "input" else "output"}[$itemIndex]${if (weightIndex != null) "[$weightIndex]" else ""}")
+    }
 }

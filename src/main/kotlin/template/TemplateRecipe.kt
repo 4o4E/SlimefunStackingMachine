@@ -5,10 +5,12 @@ import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import top.e404.eplugin.EPlugin.Companion.color
+import top.e404.eplugin.util.merge
+import top.e404.slimefun.stackingmachine.config.merge
 import top.e404.slimefun.stackingmachine.template.condition.RecipeCondition
 import top.e404.slimefun.stackingmachine.template.recipe.ExactRecipeItem
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeItem
-import top.e404.slimefun.stackingmachine.template.recipe.RecipeLocationBuilder
+import top.e404.slimefun.stackingmachine.template.recipe.RecipeLocation
 
 /**
  * 模板配方
@@ -64,23 +66,25 @@ data class TemplateRecipe(
     }
 
     /**
-     * 生成产物 若randomOut则通过权重随机
+     * 生成产物
      *
      * @param magnification 倍率
      */
     fun getResult(magnification: Int) = buildList {
         for (recipeItem in output) {
-            val exact = recipeItem.exact()
-            if (exact.item.type == Material.AIR) continue
-            val single = exact.getItemSingle()
-            val count = magnification * exact.amount
-            repeat(count / single.maxStackSize) {
-                add(single.clone().apply { amount = maxStackSize })
+            // 随机产出
+            repeat(magnification) {
+                val exact = recipeItem.exact()
+                if (exact.item.type == Material.AIR) return@repeat
+                val single = exact.getItemSingle()
+                repeat(exact.amount / single.maxStackSize) {
+                    add(single.clone().apply { amount = maxStackSize })
+                }
+                val l = exact.amount % single.maxStackSize
+                if (l != 0) add(single.clone().apply { amount = l })
             }
-            val l = count % single.maxStackSize
-            if (l != 0) add(single.clone().apply { amount = l })
         }
-    }
+    }.merge()
 
     fun display(magnification: Int): List<Component> {
         return buildList {
@@ -96,11 +100,15 @@ data class TemplateRecipe(
         }
     }
 
-    fun valid(location: RecipeLocationBuilder) = buildList {
-        for ((itemIndex, item) in input.withIndex()) {
+    fun valid(location: RecipeLocation) = buildList {
+        if (input.isEmpty()) {
+            if (location.isEmpty != true) add(location to "input中未包含物品")
+        }
+        else for ((itemIndex, item) in input.withIndex()) {
             addAll(item.valid(location.copy(isInput = true, items = input, itemIndex = itemIndex)))
         }
-        for ((itemIndex, item) in output.withIndex()) {
+        if (output.isEmpty()) add(location to "output中未包含物品")
+        else for ((itemIndex, item) in output.withIndex()) {
             addAll(item.valid(location.copy(isInput = false, items = output, itemIndex = itemIndex)))
         }
     }
