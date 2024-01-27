@@ -23,7 +23,7 @@ class MachineMenu : ChestMenu(PL, 6, Lang["menu.machine.title"], false) {
         override fun onClick(menuIndex: Int, zoneIndex: Int, itemIndex: Int, event: InventoryClickEvent): Boolean {
             val recipes = data.getOrNull(itemIndex) ?: return true
             val player = event.whoClicked as Player
-            MenuManager.openMenu(RecipesMenu(this@MachineMenu, recipes), player)
+            MenuManager.openMenu(RecipesMenu(recipes, this@MachineMenu), player)
             return true
         }
     }

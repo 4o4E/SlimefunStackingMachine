@@ -37,8 +37,8 @@ dependencies {
     implementation(eplugin("adventure"))
     implementation(eplugin("hook-slimefun"))
     // sf
-    // compileOnly("com.github.Slimefun:Slimefun4:RC-35")
-    compileOnly(files("run/plugins/Slimefun-eabaa21-Beta.jar"))
+    compileOnly("com.github.StarWishsama:Slimefun4:master-SNAPSHOT")
+    // compileOnly(files("run/plugins/Slimefun-eabaa21-Beta.jar"))
     // compileOnly(files("run/plugins/Slimefun-2023.10.20-release.jarrt"))
     compileOnly("io.github.sefiraat:networks:MODIFIED_1.2.0")
 }

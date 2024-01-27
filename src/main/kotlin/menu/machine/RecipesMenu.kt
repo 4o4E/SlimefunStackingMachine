@@ -24,7 +24,7 @@ import kotlin.math.max
  *
  * @property machineInfo 所有合成表
  */
-class RecipesMenu(val last: MachineMenu, val machineInfo: Template) : ChestMenu(
+class RecipesMenu(val machineInfo: Template, val last: MachineMenu? = null) : ChestMenu(
     plugin = PL,
     row = 6,
     title = Lang["menu.recipes.title", "machine" to machineInfo.machineItem.itemName],
@@ -131,9 +131,10 @@ class RecipesMenu(val last: MachineMenu, val machineInfo: Template) : ChestMenu(
             else item = emptyItem
     }
     private val back = object : MenuButton(this) {
-        override var item = buildItemStack(Material.OAK_SIGN, name = "&f返回")
+        override var item = if (last == null) background else buildItemStack(Material.OAK_SIGN, name = "&f返回")
         override fun updateItem() {}
         override fun onClick(slot: Int, event: InventoryClickEvent): Boolean {
+            if (last == null) return true
             MenuManager.openMenu(last, event.whoClicked)
             return true
         }
