@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package top.e404.slimefun.stackingmachine.template.condition
 
 import io.github.sefiraat.networks.network.NetworkRoot
@@ -76,7 +78,7 @@ data class TimeCondition(
     override val display: String,
     @Serializable(IntRangeSerialization::class) val range: IntRange,
 ) : RecipeCondition {
-    override fun condition(block: Block, network: NetworkRoot) = block.world.time in range
+    override fun condition(block: Block, network: NetworkRoot) = block.world.time % 24000 in range
 }
 
 @Serializable
