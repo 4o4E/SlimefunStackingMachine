@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package top.e404.slimefun.stackingmachine.machine
 
 import io.github.sefiraat.networks.network.NetworkRoot
@@ -8,7 +6,6 @@ import io.github.sefiraat.networks.slimefun.network.NetworkController
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType
-import io.github.thebusybiscuit.slimefun4.core.attributes.EnergyNetComponent
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockBreakHandler
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockPlaceHandler
 import io.github.thebusybiscuit.slimefun4.core.networks.energy.EnergyNet
@@ -17,21 +14,16 @@ import io.github.thebusybiscuit.slimefun4.implementation.Slimefun
 import io.github.thebusybiscuit.slimefun4.implementation.SlimefunItems
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config
-import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu
-import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ClickAction
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.interfaces.InventoryBlock
 import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker
 import me.mrCookieSlime.Slimefun.api.BlockStorage
-import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu
 import net.kyori.adventure.text.Component
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
-import org.bukkit.entity.Player
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
-import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 import top.e404.eplugin.EPlugin.Companion.color
 import top.e404.eplugin.util.asString
@@ -44,39 +36,33 @@ import top.e404.slimefun.stackingmachine.SfHook
 import top.e404.slimefun.stackingmachine.buildMenu
 import top.e404.slimefun.stackingmachine.config.Data
 import top.e404.slimefun.stackingmachine.config.Progress
-import top.e404.slimefun.stackingmachine.config.TemplateManager
+import top.e404.slimefun.stackingmachine.config.GeneratorManager
 import top.e404.slimefun.stackingmachine.config.stacking
-import top.e404.slimefun.stackingmachine.menu.MenuManager
-import top.e404.slimefun.stackingmachine.menu.machine.MachineMenu
-import top.e404.slimefun.stackingmachine.menu.machine.RecipesMenu
 import kotlin.math.min
 
-private val left by lazy { SlimefunItem.getById("NTW_GRABBER")!!.item }
-private val right by lazy { SlimefunItem.getById("NTW_PUSHER")!!.item }
-private val up = SlimefunItems.ANDROID_MEMORY_CORE
+private val c = SlimefunItems.ENERGY_CONNECTOR
+private val up = SlimefunItems.ENERGY_REGULATOR
 private val center by lazy { SlimefunItem.getById("NTW_QUANTUM_STORAGE_1")!!.item }
 private val down = SlimefunItems.SMALL_CAPACITOR
 
-object StackingMachine : SlimefunItem(
+object StackingGenerator : SlimefunItem(
     group,
     SlimefunItemStack(
-        "STACKING_MACHINE",
+        "STACKING_GENERATOR",
         Material.FURNACE,
-        "&a批量堆叠机器".color(),
+        "&a批量堆叠发电机".color(),
         "&f放几个就有几倍效率".color(),
-        "&f同时也会成倍消耗电能(将从电网的电容中抽取)".color(),
     ),
     RecipeType.ENHANCED_CRAFTING_TABLE,
     arrayOf(
-        left, up, right,
-        left, center, right,
-        left, down, right,
+        c, up, c,
+        c, center, c,
+        c, down, c,
     )
-), InventoryBlock, EnergyNetComponent {
+), InventoryBlock {
     private const val COUNT_KEY = "internal_machine_count"
     private const val ID_KEY = "internal_machine_id"
     private const val STATE_KEY = "stack_machine_state"
-
     internal enum class MachineState(
         private val material: Material,
         private val message: String,
@@ -100,11 +86,6 @@ object StackingMachine : SlimefunItem(
          * 缺少材料
          */
         LAKE_MATERIAL(Material.RED_STAINED_GLASS_PANE, "&c缺少材料"),
-
-        /**
-         * 电力不足
-         */
-        LAKE_ENERGY(Material.RED_STAINED_GLASS_PANE, "&c电力不足"),
 
         /**
          * 缺少输入模板
@@ -162,8 +143,8 @@ object StackingMachine : SlimefunItem(
         }
 
     private val CACHE = buildMenu(
-        "&f堆叠机器",
-        "########!",
+        "&f堆叠发电机",
+        "#########",
         "#   #IiI#",
         "#   m#n##",
         "#   #OoO#",
@@ -180,33 +161,6 @@ object StackingMachine : SlimefunItem(
             'I' -> buildItemStack(Material.GREEN_STAINED_GLASS_PANE, name = "&f在空格放入机器") to DENY_TOUCH
             // 输出提示
             'O' -> buildItemStack(Material.GREEN_STAINED_GLASS_PANE, name = "&f从存储中取出机器") to DENY_TOUCH
-            // 打开配方表
-            '!' -> buildItemStack(
-                Material.BLUE_STAINED_GLASS_PANE,
-                name = "&f打开机器配方表"
-            ) to object : ChestMenu.AdvancedMenuClickHandler {
-                override fun onClick(p0: Player?, p1: Int, p2: ItemStack?, p3: ClickAction?) = true
-                override fun onClick(
-                    e: InventoryClickEvent,
-                    p: Player,
-                    p2: Int,
-                    p3: ItemStack,
-                    p4: ClickAction
-                ): Boolean {
-                    val menu = e.inventory.holder as BlockMenu
-                    val machineId = BlockStorage.getLocationInfo(menu.block.location).id
-                        ?: menu.getItemInSlot(33)?.let(SfHook::getId)
-                    p.closeInventory()
-                    val machineInfo = TemplateManager.templates[machineId]
-                    MenuManager.openMenu(
-                        if (machineInfo == null) MachineMenu() else RecipesMenu(
-                            machineInfo,
-                            MachineMenu()
-                        ), p
-                    )
-                    return true
-                }
-            }
 
             else -> null
         }
@@ -260,43 +214,24 @@ object StackingMachine : SlimefunItem(
                     return
                 }
 
-                // 正在合成
+                // 正在发电
                 val progress = Data.config[b.location]
                 if (progress != null) {
-                    // 总储电量
-                    val totalEnergy = energyNet.capacitors.entries.sumOf { (location, component) ->
-                        component.getCharge(location)
-                    }
-                    if (totalEnergy < progress.recipe.energy * progress.magnification) {
-                        val percentage = String.format("%.2f", 100.0 * progress.progress / progress.recipe.duration)
-                        updateMachineState(
-                            MachineState.LAKE_ENERGY,
-                            "电力不足",
-                            "&f进度: ${progress.progress} / ${progress.recipe.duration} ($percentage%)",
-                            "配方耗电: ${progress.recipe.energy}",
-                            "堆叠次数: ${progress.magnification}",
-                            "当前每tick需要: ${progress.recipe.energy * progress.magnification}",
-                            "电容总储电量: $totalEnergy",
-                            "&f总耗电: ${progress.recipe.energy * progress.magnification * progress.recipe.duration}"
-                        )
-                        PL.debug { "电力不足, 配方每tick需要${progress.recipe.energy} * ${progress.magnification} = ${progress.recipe.energy * progress.magnification}, 但是电网中只有${totalEnergy}" }
-                        return
-                    }
-                    // 取电
-                    var take = progress.recipe.energy * progress.magnification
+                    // 存电
+                    var push = progress.recipe.energy * progress.magnification
                     for ((location, capacitor) in energyNet.capacitors.entries) {
-                        val total = capacitor.getCharge(location)
-                        if (total <= 0) continue
-                        // 不够吃
-                        if (take > total) {
-                            take -= total
-                            PL.debug { "从${location.asString}中消耗电量: $total" }
-                            capacitor.removeCharge(location, total)
+                        val canPush = capacitor.capacity - capacitor.getCharge(location)
+                        if (canPush <= 0) continue
+                        // 充不完
+                        if (push > canPush) {
+                            push -= canPush
+                            PL.debug { "向${location.asString}中增加电量: $canPush" }
+                            capacitor.addCharge(location, canPush)
                             continue
                         }
-                        // 吃不完
-                        PL.debug { "从${location.asString}中消耗电量: $take" }
-                        capacitor.removeCharge(location, take)
+                        // 充完
+                        PL.debug { "向${location.asString}中增加电量: $push" }
+                        capacitor.addCharge(location, push)
                         break
                     }
                     progress.progress++
@@ -304,10 +239,10 @@ object StackingMachine : SlimefunItem(
                     val lore = buildList {
                         val percentage = String.format("%.2f", 100.0 * progress.progress / progress.recipe.duration)
                         add(Component.text("&f进度: ${progress.progress} / ${progress.recipe.duration} ($percentage%)".color()))
-                        add(Component.text("&f配方耗电: ${progress.recipe.energy}".color()))
+                        add(Component.text("&f配方发电: ${progress.recipe.energy}".color()))
                         add(Component.text("&f堆叠次数: ${progress.magnification}".color()))
-                        add(Component.text("&f当前每tick需要: ${progress.recipe.energy * progress.magnification}".color()))
-                        add(Component.text("&f总耗电: ${progress.recipe.energy * progress.magnification * progress.recipe.duration}".color()))
+                        add(Component.text("&f当前每tick发电: ${progress.recipe.energy * progress.magnification}".color()))
+                        add(Component.text("&f总发电: ${progress.recipe.energy * progress.magnification * progress.recipe.duration}".color()))
                         addAll(progress.display)
                     }
                     updateMachineState(MachineState.RUN, lore)
@@ -441,7 +376,7 @@ object StackingMachine : SlimefunItem(
                     .filter { it.type != Material.AIR }
                     .map(ItemStack::clone)
 
-                val machineTemplate = TemplateManager.templates[internalMachineId]
+                val machineTemplate = GeneratorManager.templates[internalMachineId]
                 if (machineTemplate == null) {
                     updateMachineState(MachineState.UNSUPPORTED_MACHINE)
                     PL.debug { "未定义的机器" }
@@ -526,12 +461,7 @@ object StackingMachine : SlimefunItem(
                 val lore = buildList {
                     add(
                         Component.text(
-                            "&f进度: 1 / ${recipe.duration} (${
-                                String.format(
-                                    "%.2f",
-                                    100.0 / recipe.duration
-                                )
-                            }%)".color()
+                            "&f进度: 1 / ${recipe.duration} (${String.format("%.2f", 100.0 / recipe.duration)}%)".color()
                         )
                     )
                     addAll(display)
@@ -632,7 +562,4 @@ object StackingMachine : SlimefunItem(
     override fun getInputSlots() = intArrayOf()
 
     override fun getOutputSlots() = intArrayOf()
-
-    override fun getEnergyComponentType() = EnergyNetComponentType.CONSUMER
-    override fun getCapacity() = 1
 }

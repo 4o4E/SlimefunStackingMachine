@@ -14,6 +14,7 @@ import top.e404.slimefun.stackingmachine.MachineRecipe
 import top.e404.slimefun.stackingmachine.MachineRecipes
 import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.config.Config
+import top.e404.slimefun.stackingmachine.config.GeneratorManager
 import top.e404.slimefun.stackingmachine.config.Lang
 import top.e404.slimefun.stackingmachine.config.TemplateManager
 import top.e404.slimefun.stackingmachine.menu.MenuManager
@@ -34,6 +35,7 @@ object Commands : ECommandManager(
                 Lang.load(sender)
                 Config.load(sender)
                 TemplateManager.load(sender)
+                GeneratorManager.load(sender)
                 plugin.sendMsgWithPrefix(sender, Lang["plugin_command.reload_done"])
             }
         }
