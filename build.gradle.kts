@@ -22,6 +22,8 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
     // papi
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+    // mm
+    maven("https://mvn.lumine.io/repository/maven-public/")
     mavenCentral()
     mavenLocal()
 }
@@ -36,11 +38,13 @@ dependencies {
     implementation(eplugin("menu"))
     implementation(eplugin("adventure"))
     implementation(eplugin("hook-slimefun"))
+    implementation(eplugin("hook-mmoitems"))
     // sf
     compileOnly("com.github.StarWishsama:Slimefun4:master-SNAPSHOT")
-    // compileOnly(files("run/plugins/Slimefun-eabaa21-Beta.jar"))
-    // compileOnly(files("run/plugins/Slimefun-2023.10.20-release.jarrt"))
+    // networks
     compileOnly("io.github.sefiraat:networks:MODIFIED_1.2.0")
+    // mi
+    compileOnly("net.Indyuce:MMOItems:6.7.3")
 }
 
 tasks {

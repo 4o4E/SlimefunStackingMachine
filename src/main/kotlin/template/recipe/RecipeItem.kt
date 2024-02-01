@@ -14,6 +14,7 @@ import top.e404.eplugin.menu.Displayable
 import top.e404.eplugin.table.chooseBy
 import top.e404.eplugin.util.buildItemStack
 import top.e404.eplugin.util.materialOf
+import top.e404.slimefun.stackingmachine.MiHook
 import top.e404.slimefun.stackingmachine.SfHook
 
 /**
@@ -135,7 +136,11 @@ data class McRecipeItem(
     }
 
     override fun getItemSingle() = itemTemplate.clone()
-    override fun match(item: ItemStack) = item.type.name.equals(id, true)
+    override fun match(item: ItemStack) =
+        SfHook.getId(item) == null
+                && MiHook.getType(item) == null
+                && item.type.name.equals(id, true)
+
     override fun display(magnification: Int) = (display
         ?.let { Component.text(it) }
         ?: if (itemTemplate.type == Material.AIR) Component.text("&f空气".color()) else itemTemplate.display)
