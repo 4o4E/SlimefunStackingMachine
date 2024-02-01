@@ -45,12 +45,13 @@ import top.e404.slimefun.stackingmachine.DENY_TOUCH
 import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.SfHook
 import top.e404.slimefun.stackingmachine.buildMenu
+import top.e404.slimefun.stackingmachine.config.Data
+import top.e404.slimefun.stackingmachine.config.Progress
 import top.e404.slimefun.stackingmachine.config.TemplateManager
 import top.e404.slimefun.stackingmachine.config.stacking
 import top.e404.slimefun.stackingmachine.menu.MenuManager
 import top.e404.slimefun.stackingmachine.menu.machine.MachineMenu
 import top.e404.slimefun.stackingmachine.menu.machine.RecipesMenu
-import top.e404.slimefun.stackingmachine.template.TemplateRecipe
 import kotlin.math.min
 
 val categoryId by lazy { NamespacedKey(PL, "STACKING_MACHINE_CATEGORY") }
@@ -214,7 +215,12 @@ object StackingMachine : SlimefunItem(
                         ?: menu.getItemInSlot(33)?.let(SfHook::getId)
                     p.closeInventory()
                     val machineInfo = TemplateManager.templates[machineId]
-                    MenuManager.openMenu(if (machineInfo == null) MachineMenu() else RecipesMenu(machineInfo, MachineMenu()), p)
+                    MenuManager.openMenu(
+                        if (machineInfo == null) MachineMenu() else RecipesMenu(
+                            machineInfo,
+                            MachineMenu()
+                        ), p
+                    )
                     return true
                 }
             }
@@ -228,7 +234,6 @@ object StackingMachine : SlimefunItem(
         val inputSlot = CACHE.getSlot('i')
         val outputSlot = CACHE.getSlot('o')
 
-        val progresses = mutableMapOf<Location, Progress>()
         val tickHandler = object : BlockTicker() {
 
             @Deprecated("Deprecated in Java")
@@ -273,7 +278,7 @@ object StackingMachine : SlimefunItem(
                 }
 
                 // 正在合成
-                val progress = progresses[b.location]
+                val progress = Data.config[b.location]
                 if (progress != null) {
                     // 总储电量
                     val totalEnergy = energyNet.capacitors.entries.sumOf { (location, component) ->
@@ -335,7 +340,7 @@ object StackingMachine : SlimefunItem(
                             root.addItemStack(it)
                             if (it.amount != 0) b.world.dropItem(b.location, it)
                         }
-                        progresses.remove(b.location)
+                        Data.config.remove(b.location)
                         PL.debug { "完成" }
                         return
                     }
@@ -477,7 +482,7 @@ object StackingMachine : SlimefunItem(
                     val display = r.display(magnification)
                     val output = r.getResult(magnification)
                     PL.debug { "配方输出: $output" }
-                    progresses[b.location] = Progress(1, r, output, display, magnification)
+                    Data.config[b.location] = Progress(1, r, output, display, magnification)
 
                     val lore = buildList {
                         add(
@@ -534,7 +539,7 @@ object StackingMachine : SlimefunItem(
                 val display = recipe.display(magnification)
                 val output = recipe.getResult(magnification)
                 PL.debug { "配方输出: $output" }
-                progresses[b.location] = Progress(1, recipe, output, display, magnification)
+                Data.config[b.location] = Progress(1, recipe, output, display, magnification)
 
                 val lore = buildList {
                     add(
@@ -557,7 +562,7 @@ object StackingMachine : SlimefunItem(
         }
         val placeHandler = object : BlockPlaceHandler(false) {
             override fun onPlayerPlace(e: BlockPlaceEvent) {
-                progresses.remove(e.block.location)
+                Data.config.remove(e.block.location)
                 BlockStorage.getLocationInfo(e.block.location).apply {
                     id = ""
                     count = 0
@@ -568,13 +573,13 @@ object StackingMachine : SlimefunItem(
         }
         val breakHandler = object : BlockBreakHandler(false, false) {
             override fun onPlayerBreak(e: BlockBreakEvent, item: ItemStack, drops: MutableList<ItemStack>) {
-                val progress = progresses[e.block.location]
+                val progress = Data.config[e.block.location]
                 if (progress != null) {
                     for (input in progress.recipe.input) {
                         drops.addAll(input.getItemSingle().stacking(input.amount * progress.magnification))
                     }
                 }
-                progresses.remove(e.block.location)
+                Data.config.remove(e.block.location)
                 // 正常掉落
                 val blockMenu = BlockStorage.getInventory(e.block)
                 // 模板
@@ -649,11 +654,3 @@ object StackingMachine : SlimefunItem(
     override fun getEnergyComponentType() = EnergyNetComponentType.CONSUMER
     override fun getCapacity() = 1
 }
-
-data class Progress(
-    var progress: Int,
-    val recipe: TemplateRecipe,
-    val output: List<ItemStack>,
-    val display: List<Component>,
-    val magnification: Int,
-)

@@ -37,6 +37,7 @@ dependencies {
     implementation(eplugin("serialization"))
     implementation(eplugin("menu"))
     implementation(eplugin("adventure"))
+    implementation(eplugin("serialization-adventure"))
     implementation(eplugin("hook-slimefun"))
     implementation(eplugin("hook-mmoitems"))
     // sf

@@ -4,6 +4,7 @@ import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon
 import top.e404.eplugin.EPlugin
 import top.e404.slimefun.stackingmachine.command.Commands
 import top.e404.slimefun.stackingmachine.config.Config
+import top.e404.slimefun.stackingmachine.config.Data
 import top.e404.slimefun.stackingmachine.config.Lang
 import top.e404.slimefun.stackingmachine.config.TemplateManager
 import top.e404.slimefun.stackingmachine.machine.StackingMachine
@@ -25,6 +26,7 @@ class SlimefunStackingMachine : EPlugin() {
         PL = this
         Config.load(null)
         Lang.load(null)
+        Data.load(null)
         TemplateManager.load(null)
         Commands.register()
         HookManager.register()
@@ -34,6 +36,7 @@ class SlimefunStackingMachine : EPlugin() {
     }
 
     override fun onDisable() {
+        Data.saveImmediately()
         MenuManager.shutdown()
         cancelAllTask()
         info("&a卸载完成")

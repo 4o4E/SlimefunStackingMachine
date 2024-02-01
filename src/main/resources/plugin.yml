@@ -5,6 +5,8 @@ api-version: 1.16
 depend:
   - Slimefun
   - Networks
+softdepend:
+  - MMOItems
 authors: [ 404E ]
 commands:
   stackingmachine:

@@ -136,10 +136,11 @@ data class McRecipeItem(
     }
 
     override fun getItemSingle() = itemTemplate.clone()
-    override fun match(item: ItemStack) =
-        SfHook.getId(item) == null
-                && MiHook.getType(item) == null
-                && item.type.name.equals(id, true)
+    override fun match(item: ItemStack): Boolean {
+        if (SfHook.getId(item) != null) return false
+        if (MiHook.enable && MiHook.getType(item) == null) return false
+        return item.type.name.equals(id, true)
+    }
 
     override fun display(magnification: Int) = (display
         ?.let { Component.text(it) }
