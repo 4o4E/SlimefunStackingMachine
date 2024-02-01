@@ -38,11 +38,17 @@ recipes:
     duration: 10
     energy: 100
     condition:
+      # 方块类型
       - type: block
-        direction: { x: 1, y: 1, z: 1 }
+        direction: { x: 0, y: 1, z: 0 }
         list:
-          - mc:stone
-          - sf:NTW_GRABBER
+          - mc:water
+          # - sf:NTW_GRABBER
+        display: 要求底部是水
+      # 时间范围
+      - type: time
+        range: 10..500
+        display: 要求时间在10-500
     input:
       - type: mc
         id: cobblestone

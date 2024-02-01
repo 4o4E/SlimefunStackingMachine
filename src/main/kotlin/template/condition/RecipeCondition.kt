@@ -74,9 +74,9 @@ data class BlockCondition(
 @SerialName("time")
 data class TimeCondition(
     override val display: String,
-    val timeRange: @Serializable(IntRangeSerialization::class) IntRange,
+    @Serializable(IntRangeSerialization::class) val range: IntRange,
 ) : RecipeCondition {
-    override fun condition(block: Block, network: NetworkRoot) = block.world.time in timeRange
+    override fun condition(block: Block, network: NetworkRoot) = block.world.time in range
 }
 
 @Serializable
