@@ -298,16 +298,18 @@ object StackingMachine : SlimefunItem(
                     var take = progress.recipe.energy * progress.magnification
                     for ((location, capacitor) in energyNet.capacitors.entries) {
                         val total = capacitor.getCharge(location)
+                        PL.debug { "${location.asString} - $total" }
+                        if (total <= 0) continue
                         // 不够吃
                         if (take > total) {
                             take -= total
-                            capacitor.removeCharge(location, total)
                             PL.debug { "从${location.asString}中消耗电量: $total" }
+                            capacitor.removeCharge(location, total)
                             continue
                         }
                         // 吃不完
-                        capacitor.removeCharge(location, take)
                         PL.debug { "从${location.asString}中消耗电量: $take" }
+                        capacitor.removeCharge(location, take)
                         break
                     }
                     progress.progress++
