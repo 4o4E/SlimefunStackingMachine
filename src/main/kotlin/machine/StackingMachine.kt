@@ -518,8 +518,8 @@ object StackingMachine : SlimefunItem(
                         PL.debug { "缺少材料: $recipeItem" }
                         return
                     }
-                    val (item, totalCount) = entry
-                    Triple(recipeItem, item, totalCount / item.amount)
+                    val (item, networkCount) = entry
+                    Triple(recipeItem, item, networkCount / recipeItem.amount)
                 }
                 val magnification = min(calculatedInput.minOf { it.third }, count)
                 if (magnification <= 0) {
