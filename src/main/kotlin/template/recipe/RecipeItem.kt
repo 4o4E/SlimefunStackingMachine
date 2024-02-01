@@ -138,7 +138,7 @@ data class McRecipeItem(
     override fun getItemSingle() = itemTemplate.clone()
     override fun match(item: ItemStack): Boolean {
         if (SfHook.getId(item) != null) return false
-        if (MiHook.enable && MiHook.getType(item) == null) return false
+        if (MiHook.enable && MiHook.getType(item) != null) return false
         return item.type.name.equals(id, true)
     }
 
