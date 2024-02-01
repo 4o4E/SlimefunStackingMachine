@@ -76,9 +76,6 @@ data class TimeCondition(
     override val display: String,
     val timeRange: @Serializable(IntRangeSerialization::class) IntRange,
 ) : RecipeCondition {
-    @Serializable
-    data class Direction(val x: Int = 0, val y: Int = 0, val z: Int)
-
     override fun condition(block: Block, network: NetworkRoot) = block.world.time in timeRange
 }
 
