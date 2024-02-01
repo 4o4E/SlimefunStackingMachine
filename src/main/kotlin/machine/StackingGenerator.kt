@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package top.e404.slimefun.stackingmachine.machine
 
 import io.github.sefiraat.networks.network.NetworkRoot
@@ -50,7 +52,6 @@ private val up = SlimefunItems.ENERGY_REGULATOR
 private val center by lazy { SlimefunItem.getById("NTW_QUANTUM_STORAGE_1")!!.item }
 private val down = SlimefunItems.SMALL_CAPACITOR
 
-@Suppress("DEPRECATION")
 object StackingGenerator : SlimefunItem(
     group,
     SlimefunItemStack(

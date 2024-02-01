@@ -58,7 +58,6 @@ private val up = SlimefunItems.ANDROID_MEMORY_CORE
 private val center by lazy { SlimefunItem.getById("NTW_QUANTUM_STORAGE_1")!!.item }
 private val down = SlimefunItems.SMALL_CAPACITOR
 
-@Suppress("DEPRECATION")
 object StackingMachine : SlimefunItem(
     group,
     SlimefunItemStack(
