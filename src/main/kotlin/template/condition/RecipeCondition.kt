@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 import me.mrCookieSlime.Slimefun.api.BlockStorage
 import org.bukkit.block.Block
 import org.bukkit.inventory.ItemStack
+import top.e404.eplugin.config.serialization.IntRangeSerialization
 import top.e404.eplugin.util.materialOf
 import top.e404.slimefun.stackingmachine.SfHook
 
@@ -67,6 +68,18 @@ data class BlockCondition(
             }
         }
     }
+}
+
+@Serializable
+@SerialName("time")
+data class TimeCondition(
+    override val display: String,
+    val timeRange: @Serializable(IntRangeSerialization::class) IntRange,
+) : RecipeCondition {
+    @Serializable
+    data class Direction(val x: Int = 0, val y: Int = 0, val z: Int)
+
+    override fun condition(block: Block, network: NetworkRoot) = block.world.time in timeRange
 }
 
 @Serializable
