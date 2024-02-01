@@ -5,7 +5,6 @@ import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import top.e404.eplugin.EPlugin.Companion.color
-import top.e404.eplugin.util.merge
 import top.e404.slimefun.stackingmachine.config.merge
 import top.e404.slimefun.stackingmachine.template.condition.RecipeCondition
 import top.e404.slimefun.stackingmachine.template.recipe.ExactRecipeItem
