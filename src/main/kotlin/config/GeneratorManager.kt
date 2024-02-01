@@ -6,6 +6,7 @@ import top.e404.eplugin.config.KtxMultiFileConfig
 import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeLocation
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeType
+import java.io.File
 
 object GeneratorManager : KtxMultiFileConfig<Template>(
     plugin = PL,
@@ -26,6 +27,8 @@ object GeneratorManager : KtxMultiFileConfig<Template>(
                 .let { dir.resolve("generator.yml").writeText(it) }
         }
     }
+
+    override fun File.select() = name.endsWith(".yml")
 
     override fun load(sender: CommandSender?) {
         super.load(sender)

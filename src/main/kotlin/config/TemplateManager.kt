@@ -13,6 +13,7 @@ import top.e404.slimefun.stackingmachine.SfHook
 import top.e404.slimefun.stackingmachine.template.TemplateRecipe
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeLocation
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeType
+import java.io.File
 
 object TemplateManager : KtxMultiFileConfig<Template>(
     plugin = PL,
@@ -33,6 +34,8 @@ object TemplateManager : KtxMultiFileConfig<Template>(
                 .let { dir.resolve("example.yml").writeText(it) }
         }
     }
+    
+    override fun File.select() = name.endsWith(".yml")
 
     override fun load(sender: CommandSender?) {
         super.load(sender)
