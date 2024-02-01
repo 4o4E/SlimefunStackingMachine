@@ -3,6 +3,7 @@ package top.e404.slimefun.stackingmachine.template.condition
 import io.github.sefiraat.networks.network.NetworkRoot
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import me.mrCookieSlime.Slimefun.api.BlockStorage
 import org.bukkit.block.Block
 import org.bukkit.inventory.ItemStack
 import top.e404.eplugin.util.materialOf
@@ -43,6 +44,32 @@ data class BiomeCondition(
 }
 
 @Serializable
+@SerialName("block")
+data class BlockCondition(
+    override val display: String,
+    val list: List<String>,
+    val direction: Direction
+) : RecipeCondition {
+    @Serializable
+    data class Direction(val x: Int = 0, val y: Int = 0, val z: Int)
+
+    override fun condition(block: Block, network: NetworkRoot) = block.location.add(
+        direction.x.toDouble(),
+        direction.y.toDouble(),
+        direction.z.toDouble()
+    ).let { target ->
+        list.any {
+            val (type, id) = it.lowercase().split(":")
+            when (type.lowercase()) {
+                "mc" -> id.equals(target.block.type.name, true)
+                "sf" -> id.equals(BlockStorage.getLocationInfo(target, "id"), true)
+                else -> error("unknown type: $type")
+            }
+        }
+    }
+}
+
+@Serializable
 @SerialName("require_item")
 data class RequireItemCondition(
     override val display: String,
@@ -50,7 +77,9 @@ data class RequireItemCondition(
 ) : RecipeCondition {
     override fun condition(block: Block, network: NetworkRoot) =
         item.amount
-            ?.let { amount -> network.allNetworkItems.entries.filter { item.match(it.key) }.sumOf { it.value } > amount }
+            ?.let { amount ->
+                network.allNetworkItems.entries.filter { item.match(it.key) }.sumOf { it.value } > amount
+            }
             ?: network.allNetworkItems.keys.any(item::match)
 
     @Serializable

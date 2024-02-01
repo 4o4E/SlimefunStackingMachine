@@ -9,7 +9,6 @@ import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockBreakHandler
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockPlaceHandler
 import io.github.thebusybiscuit.slimefun4.core.networks.energy.EnergyNet
-import io.github.thebusybiscuit.slimefun4.core.networks.energy.EnergyNetComponentType
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun
 import io.github.thebusybiscuit.slimefun4.implementation.SlimefunItems
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils
@@ -35,8 +34,8 @@ import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.SfHook
 import top.e404.slimefun.stackingmachine.buildMenu
 import top.e404.slimefun.stackingmachine.config.Data
-import top.e404.slimefun.stackingmachine.config.Progress
 import top.e404.slimefun.stackingmachine.config.GeneratorManager
+import top.e404.slimefun.stackingmachine.config.Progress
 import top.e404.slimefun.stackingmachine.config.stacking
 import kotlin.math.min
 
@@ -63,6 +62,7 @@ object StackingGenerator : SlimefunItem(
     private const val COUNT_KEY = "internal_machine_count"
     private const val ID_KEY = "internal_machine_id"
     private const val STATE_KEY = "stack_machine_state"
+
     internal enum class MachineState(
         private val material: Material,
         private val message: String,
@@ -461,7 +461,12 @@ object StackingGenerator : SlimefunItem(
                 val lore = buildList {
                     add(
                         Component.text(
-                            "&f进度: 1 / ${recipe.duration} (${String.format("%.2f", 100.0 / recipe.duration)}%)".color()
+                            "&f进度: 1 / ${recipe.duration} (${
+                                String.format(
+                                    "%.2f",
+                                    100.0 / recipe.duration
+                                )
+                            }%)".color()
                         )
                     )
                     addAll(display)

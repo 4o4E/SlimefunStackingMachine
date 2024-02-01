@@ -37,6 +37,12 @@ recipes:
   - name: xxx
     duration: 10
     energy: 100
+    condition:
+      - type: block
+        direction: { x: 1, y: 1, z: 1 }
+        list:
+          - mc:stone
+          - sf:NTW_GRABBER
     input:
       - type: mc
         id: cobblestone
