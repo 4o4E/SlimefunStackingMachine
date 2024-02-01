@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "top.e404"
-version = "1.3.0"
+version = "1.3.1"
 val epluginVersion = "1.2.0"
 
 fun kotlinx(id: String, version: String) = "org.jetbrains.kotlinx:kotlinx-$id:$version"
@@ -85,8 +85,10 @@ tasks {
         val copyFile = jarDir.resolve(outFile.name)
 
         doFirst {
-            println("deleted ${outFile.absolutePath}")
-            copyFile.delete()
+            jarDir.listFiles()?.forEach {
+                println("deleted ${it.absolutePath}")
+                it.delete()
+            }
         }
 
         doLast {
