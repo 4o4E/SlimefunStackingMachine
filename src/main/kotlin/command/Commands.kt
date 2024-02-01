@@ -19,6 +19,7 @@ import top.e404.slimefun.stackingmachine.config.Lang
 import top.e404.slimefun.stackingmachine.config.TemplateManager
 import top.e404.slimefun.stackingmachine.menu.MenuManager
 import top.e404.slimefun.stackingmachine.menu.machine.MachineMenu
+import top.e404.slimefun.stackingmachine.template.recipe.RecipeType
 import top.e404.slimefun.stackingmachine.toRecipeItem
 import java.io.File
 
@@ -79,7 +80,34 @@ object Commands : ECommandManager(
                 PL.sendNotPlayer(sender)
                 return
             }
-            MenuManager.openMenu(MachineMenu(), player)
+            MenuManager.openMenu(MachineMenu(TemplateManager.templates.values
+                .sortedByDescending { it.recipes.size }
+                .toMutableList(), RecipeType.MACHINE), player)
+        }
+
+        override fun onTabComplete(
+            sender: CommandSender,
+            args: Array<out String>,
+            complete: MutableList<String>,
+        ) {
+            if (args.size == 2) forEachOnline { complete.add(it.name) }
+        }
+    },
+    object : ECommand(PL, "generator", "(?i)generator", false, "stackingmachine.admin") {
+        override val usage get() = Lang["plugin_command.usage.generator"]
+        override fun onCommand(sender: CommandSender, args: Array<out String>) {
+            if (args.size != 2) {
+                PL.sendMsgWithPrefix(sender, usage)
+                return
+            }
+            val player = Bukkit.getPlayer(args[1])
+            if (player == null) {
+                PL.sendNotPlayer(sender)
+                return
+            }
+            MenuManager.openMenu(MachineMenu(GeneratorManager.templates.values
+                .sortedByDescending { it.recipes.size }
+                .toMutableList(), RecipeType.GENERATOR), player)
         }
 
         override fun onTabComplete(

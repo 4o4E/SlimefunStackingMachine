@@ -12,18 +12,17 @@ import top.e404.eplugin.util.emptyItem
 import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.config.Lang
 import top.e404.slimefun.stackingmachine.config.Template
-import top.e404.slimefun.stackingmachine.config.TemplateManager
 import top.e404.slimefun.stackingmachine.menu.MenuManager
+import top.e404.slimefun.stackingmachine.template.recipe.RecipeType
 import kotlin.math.max
 
-class MachineMenu : ChestMenu(PL, 6, Lang["menu.machine.title"], false) {
-    val data = TemplateManager.templates.values.toMutableList().apply { sortByDescending { it.recipes.size } }
+class MachineMenu(val data: MutableList<Template>, type: RecipeType) : ChestMenu(PL, 6, Lang["menu.machine.title"], false) {
     val zone = object : MenuButtonZone<Template>(this, 0, 0, 9, 5, data) {
         override val inv = menu.inv
         override fun onClick(menuIndex: Int, zoneIndex: Int, itemIndex: Int, event: InventoryClickEvent): Boolean {
             val recipes = data.getOrNull(itemIndex) ?: return true
             val player = event.whoClicked as Player
-            MenuManager.openMenu(RecipesMenu(recipes, this@MachineMenu), player)
+            MenuManager.openMenu(RecipesMenu(recipes, type, this@MachineMenu), player)
             return true
         }
     }

@@ -5,6 +5,7 @@ import top.e404.eplugin.config.KtxConfig.Companion.defaultYaml
 import top.e404.eplugin.config.KtxMultiFileConfig
 import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeLocation
+import top.e404.slimefun.stackingmachine.template.recipe.RecipeType
 
 object GeneratorManager : KtxMultiFileConfig<Template>(
     plugin = PL,
@@ -30,7 +31,7 @@ object GeneratorManager : KtxMultiFileConfig<Template>(
         super.load(sender)
         val loadResult = mutableMapOf<String, Template>()
         for ((file, template) in this.config) {
-            val valid = template.valid(RecipeLocation(file, template))
+            val valid = template.valid(RecipeLocation(RecipeType.GENERATOR, file, template))
             for ((location, message) in valid) {
                 PL.sendAndWarn(sender, location.warn(message))
             }

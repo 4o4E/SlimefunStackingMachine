@@ -16,6 +16,7 @@ import top.e404.slimefun.stackingmachine.config.Lang
 import top.e404.slimefun.stackingmachine.config.Template
 import top.e404.slimefun.stackingmachine.menu.MenuManager
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeItem
+import top.e404.slimefun.stackingmachine.template.recipe.RecipeType
 import top.e404.slimefun.stackingmachine.template.recipe.WeightRecipeItem
 import kotlin.math.max
 
@@ -24,7 +25,7 @@ import kotlin.math.max
  *
  * @property machineInfo 所有合成表
  */
-class RecipesMenu(val machineInfo: Template, val last: MachineMenu? = null) : ChestMenu(
+class RecipesMenu(val machineInfo: Template, val type: RecipeType, val last: MachineMenu? = null) : ChestMenu(
     plugin = PL,
     row = 6,
     title = Lang["menu.recipes.title", "machine" to machineInfo.machineItem.itemName],
@@ -71,12 +72,20 @@ class RecipesMenu(val machineInfo: Template, val last: MachineMenu? = null) : Ch
         outputZone.data.clear()
         outputZone.data.addAll(templateRecipe.output)
 
-        message.item = buildItemStack(
+        condition.item = buildItemStack(
             Material.OAK_SIGN,
             name = "&6条件",
             lore = templateRecipe.conditions
                 .map { it.display }
                 .ifEmpty { emptyList() }
+        )
+        message.item = buildItemStack(
+            Material.CRAFTING_TABLE,
+            name = "&6配方",
+            lore = listOf(
+                "&f${if (type == RecipeType.MACHINE) "耗电" else "发电"}: ${recipes[menuPage].energy}".color(),
+                "&f${if (type == RecipeType.MACHINE) "合成耗时" else "发电时长"}: ${recipes[menuPage].duration} sf tick".color(),
+            )
         )
     }
 
@@ -139,13 +148,23 @@ class RecipesMenu(val machineInfo: Template, val last: MachineMenu? = null) : Ch
             return true
         }
     }
-    private val message = BgSlot(this, buildItemStack(
+    private val condition = BgSlot(this, buildItemStack(
         Material.OAK_SIGN,
         name = "&6条件",
         lore = recipes[menuPage].conditions
             .map { it.display }
             .ifEmpty { listOf("&f该配方没有条件限制".color()) }.also { println(it) }
     ))
+    private val message = BgSlot(
+        this, buildItemStack(
+            Material.CRAFTING_TABLE,
+            name = "&6配方",
+            lore = listOf(
+                "&f${if (type == RecipeType.MACHINE) "耗电" else "发电"}: ${recipes[menuPage].energy}J".color(),
+                "&f${if (type == RecipeType.MACHINE) "合成耗时" else "发电时长"}: ${recipes[menuPage].duration} sf tick".color(),
+            )
+        )
+    )
 
     private companion object {
         val background = buildItemStack(Material.BLACK_STAINED_GLASS_PANE, name = "")
@@ -158,7 +177,7 @@ class RecipesMenu(val machineInfo: Template, val last: MachineMenu? = null) : Ch
                 "#iii#oooo",
                 "#iii#oooo",
                 "#iii#oooo",
-                "##m##oooo",
+                "#c#m#oooo",
                 "#p#n#oooo",
             )
         ) { _, char ->
@@ -166,6 +185,7 @@ class RecipesMenu(val machineInfo: Template, val last: MachineMenu? = null) : Ch
                 'p' -> prev
                 'n' -> next
                 'b' -> back
+                'c' -> condition
                 'm' -> message
                 '#' -> BgSlot(this, background)
                 else -> null

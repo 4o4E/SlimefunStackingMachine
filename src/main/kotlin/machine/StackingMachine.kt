@@ -7,7 +7,6 @@ import io.github.sefiraat.networks.network.stackcaches.ItemRequest
 import io.github.sefiraat.networks.slimefun.network.NetworkController
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack
-import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType
 import io.github.thebusybiscuit.slimefun4.core.attributes.EnergyNetComponent
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockBreakHandler
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockPlaceHandler
@@ -49,7 +48,9 @@ import top.e404.slimefun.stackingmachine.config.stacking
 import top.e404.slimefun.stackingmachine.menu.MenuManager
 import top.e404.slimefun.stackingmachine.menu.machine.MachineMenu
 import top.e404.slimefun.stackingmachine.menu.machine.RecipesMenu
+import top.e404.slimefun.stackingmachine.template.recipe.RecipeType
 import kotlin.math.min
+import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType as SfRecipeType
 
 private val left by lazy { SlimefunItem.getById("NTW_GRABBER")!!.item }
 private val right by lazy { SlimefunItem.getById("NTW_PUSHER")!!.item }
@@ -57,6 +58,7 @@ private val up = SlimefunItems.ANDROID_MEMORY_CORE
 private val center by lazy { SlimefunItem.getById("NTW_QUANTUM_STORAGE_1")!!.item }
 private val down = SlimefunItems.SMALL_CAPACITOR
 
+@Suppress("DEPRECATION")
 object StackingMachine : SlimefunItem(
     group,
     SlimefunItemStack(
@@ -66,7 +68,7 @@ object StackingMachine : SlimefunItem(
         "&f放几个就有几倍效率".color(),
         "&f同时也会成倍消耗电能(将从电网的电容中抽取)".color(),
     ),
-    RecipeType.ENHANCED_CRAFTING_TABLE,
+    SfRecipeType.ENHANCED_CRAFTING_TABLE,
     arrayOf(
         left, up, right,
         left, center, right,
@@ -198,10 +200,14 @@ object StackingMachine : SlimefunItem(
                         ?: menu.getItemInSlot(33)?.let(SfHook::getId)
                     p.closeInventory()
                     val machineInfo = TemplateManager.templates[machineId]
+                    val data = TemplateManager.templates.values
+                        .sortedByDescending { it.recipes.size }
+                        .toMutableList()
                     MenuManager.openMenu(
-                        if (machineInfo == null) MachineMenu() else RecipesMenu(
+                        if (machineInfo == null) MachineMenu(data, RecipeType.MACHINE) else RecipesMenu(
                             machineInfo,
-                            MachineMenu()
+                            RecipeType.MACHINE,
+                            MachineMenu(data, RecipeType.MACHINE)
                         ), p
                     )
                     return true

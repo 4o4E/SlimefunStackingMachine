@@ -5,7 +5,6 @@ import io.github.sefiraat.networks.network.stackcaches.ItemRequest
 import io.github.sefiraat.networks.slimefun.network.NetworkController
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack
-import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockBreakHandler
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockPlaceHandler
 import io.github.thebusybiscuit.slimefun4.core.networks.energy.EnergyNet
@@ -13,16 +12,21 @@ import io.github.thebusybiscuit.slimefun4.implementation.Slimefun
 import io.github.thebusybiscuit.slimefun4.implementation.SlimefunItems
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config
+import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu
+import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ClickAction
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.interfaces.InventoryBlock
 import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker
 import me.mrCookieSlime.Slimefun.api.BlockStorage
+import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu
 import net.kyori.adventure.text.Component
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
+import org.bukkit.entity.Player
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 import top.e404.eplugin.EPlugin.Companion.color
 import top.e404.eplugin.util.asString
@@ -33,17 +37,20 @@ import top.e404.slimefun.stackingmachine.DENY_TOUCH
 import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.SfHook
 import top.e404.slimefun.stackingmachine.buildMenu
-import top.e404.slimefun.stackingmachine.config.Data
-import top.e404.slimefun.stackingmachine.config.GeneratorManager
-import top.e404.slimefun.stackingmachine.config.Progress
-import top.e404.slimefun.stackingmachine.config.stacking
+import top.e404.slimefun.stackingmachine.config.*
+import top.e404.slimefun.stackingmachine.menu.MenuManager
+import top.e404.slimefun.stackingmachine.menu.machine.MachineMenu
+import top.e404.slimefun.stackingmachine.menu.machine.RecipesMenu
+import top.e404.slimefun.stackingmachine.template.recipe.RecipeType
 import kotlin.math.min
+import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType as SfRecipeType
 
 private val c = SlimefunItems.ENERGY_CONNECTOR
 private val up = SlimefunItems.ENERGY_REGULATOR
 private val center by lazy { SlimefunItem.getById("NTW_QUANTUM_STORAGE_1")!!.item }
 private val down = SlimefunItems.SMALL_CAPACITOR
 
+@Suppress("DEPRECATION")
 object StackingGenerator : SlimefunItem(
     group,
     SlimefunItemStack(
@@ -52,7 +59,7 @@ object StackingGenerator : SlimefunItem(
         "&a批量堆叠发电机".color(),
         "&f放几个就有几倍效率".color(),
     ),
-    RecipeType.ENHANCED_CRAFTING_TABLE,
+    SfRecipeType.ENHANCED_CRAFTING_TABLE,
     arrayOf(
         c, up, c,
         c, center, c,
@@ -144,7 +151,7 @@ object StackingGenerator : SlimefunItem(
 
     private val CACHE = buildMenu(
         "&f堆叠发电机",
-        "#########",
+        "########!",
         "#   #IiI#",
         "#   m#n##",
         "#   #OoO#",
@@ -161,6 +168,37 @@ object StackingGenerator : SlimefunItem(
             'I' -> buildItemStack(Material.GREEN_STAINED_GLASS_PANE, name = "&f在空格放入机器") to DENY_TOUCH
             // 输出提示
             'O' -> buildItemStack(Material.GREEN_STAINED_GLASS_PANE, name = "&f从存储中取出机器") to DENY_TOUCH
+            // 打开配方表
+            '!' -> buildItemStack(
+                Material.BLUE_STAINED_GLASS_PANE,
+                name = "&f打开机器配方表"
+            ) to object : ChestMenu.AdvancedMenuClickHandler {
+                override fun onClick(p0: Player?, p1: Int, p2: ItemStack?, p3: ClickAction?) = true
+                override fun onClick(
+                    e: InventoryClickEvent,
+                    p: Player,
+                    p2: Int,
+                    p3: ItemStack,
+                    p4: ClickAction
+                ): Boolean {
+                    val menu = e.inventory.holder as BlockMenu
+                    val machineId = BlockStorage.getLocationInfo(menu.block.location).id
+                        ?: menu.getItemInSlot(33)?.let(SfHook::getId)
+                    p.closeInventory()
+                    val machineInfo = TemplateManager.templates[machineId]
+                    val data = GeneratorManager.templates.values
+                        .sortedByDescending { it.recipes.size }
+                        .toMutableList()
+                    MenuManager.openMenu(
+                        if (machineInfo == null) MachineMenu(data, RecipeType.GENERATOR) else RecipesMenu(
+                            machineInfo,
+                            RecipeType.GENERATOR,
+                            MachineMenu(data, RecipeType.GENERATOR)
+                        ), p
+                    )
+                    return true
+                }
+            }
 
             else -> null
         }

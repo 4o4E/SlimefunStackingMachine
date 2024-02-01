@@ -56,4 +56,5 @@ plugin_command:
     reload: "&a/ssm reload &f重载插件"
     export: "&a/ssm export &f导出所有slimefun机器配方"
     debug: "&a/ssm debug &f切换debug消息的接受与否"
-    recipes: "&a/ssm recipes <玩家id> &f给玩家显示配方菜单"
+    recipes: "&a/ssm recipes <玩家id> &f给玩家显示堆叠机器配方菜单"
+    generator: "&a/ssm generator <玩家id> &f给玩家显示堆叠发电机配方菜单"

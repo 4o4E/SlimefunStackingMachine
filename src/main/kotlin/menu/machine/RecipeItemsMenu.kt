@@ -30,16 +30,7 @@ class RecipeItemsMenu(val last: RecipesMenu, val item: WeightRecipeItem) : Chest
     private class Display(val origin: ExactRecipeItem, val total: Int) : Displayable {
         override val item = origin.getItemSingle().apply {
             if (type != Material.AIR) lore(
-                listOf(
-                    Component.text(
-                        "&f概率: ${origin.weight} / $total (${
-                            String.format(
-                                "%.2f",
-                                origin.weight * 100.0 / total
-                            )
-                        }%)".color()
-                    )
-                )
+                listOf(Component.text("&f概率: ${origin.weight} / $total (${String.format("%.2f", origin.weight * 100.0 / total)}%)".color()))
             )
         }
 

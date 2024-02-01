@@ -4,7 +4,13 @@ import top.e404.slimefun.stackingmachine.config.Template
 import top.e404.slimefun.stackingmachine.template.TemplateRecipe
 import java.io.File
 
+enum class RecipeType(val display: String) {
+    MACHINE("堆叠机器"),
+    GENERATOR("堆叠发电机");
+}
+
 data class RecipeLocation(
+    val type: RecipeType,
     val file: File,
     val template: Template,
     val isEmpty: Boolean? = null,
@@ -17,6 +23,7 @@ data class RecipeLocation(
 ) {
     fun warn(message: String) = buildString {
         appendLine("配方校验失败: $message")
+        appendLine("类型: ${type.display}")
         appendLine("文件: ${file.invariantSeparatorsPath}")
         appendLine("模板: ${template.machine}")
         if (recipes != null) appendLine("配方: ${recipes[recipeIndex!!].name}")

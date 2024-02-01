@@ -11,6 +11,7 @@ import top.e404.slimefun.stackingmachine.template.condition.RecipeCondition
 import top.e404.slimefun.stackingmachine.template.recipe.ExactRecipeItem
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeItem
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeLocation
+import top.e404.slimefun.stackingmachine.template.recipe.RecipeType
 
 /**
  * 模板配方
@@ -30,7 +31,7 @@ data class TemplateRecipe(
     val order: Boolean = false,
     val conditions: List<RecipeCondition> = emptyList(),
     val input: List<ExactRecipeItem> = emptyList(),
-    val output: List<RecipeItem>,
+    val output: List<RecipeItem> = emptyList(),
 ) {
     /**
      * 检查机器中的物品模板是否对应该模板
@@ -107,7 +108,7 @@ data class TemplateRecipe(
         else for ((itemIndex, item) in input.withIndex()) {
             addAll(item.valid(location.copy(isInput = true, items = input, itemIndex = itemIndex)))
         }
-        if (output.isEmpty()) add(location to "output中未包含物品")
+        if (output.isEmpty() && location.type == RecipeType.MACHINE) add(location to "output中未包含物品")
         else for ((itemIndex, item) in output.withIndex()) {
             addAll(item.valid(location.copy(isInput = false, items = output, itemIndex = itemIndex)))
         }
