@@ -584,7 +584,7 @@ object StackingGenerator : SlimefunItem(
     private fun searchNetwork(location: Location): Pair<Location, NetworkRoot>? {
         val networkRoots = NetworkController.getNetworks().entries
         for (face in listOf(
-            BlockFace.UP, /* BlockFace.DOWN, // 不检查方块下方, 因为加速机器本体在下方 */
+            BlockFace.UP,  BlockFace.DOWN,
             BlockFace.NORTH, BlockFace.WEST,
             BlockFace.SOUTH, BlockFace.EAST,
         )) {
