@@ -31,6 +31,7 @@ import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 import top.e404.eplugin.EPlugin.Companion.color
+import top.e404.eplugin.adventure.display
 import top.e404.eplugin.util.asString
 import top.e404.eplugin.util.buildItemStack
 import top.e404.eplugin.util.editItemMeta
@@ -39,7 +40,11 @@ import top.e404.slimefun.stackingmachine.DENY_TOUCH
 import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.SfHook
 import top.e404.slimefun.stackingmachine.buildMenu
-import top.e404.slimefun.stackingmachine.config.*
+import top.e404.slimefun.stackingmachine.config.Data
+import top.e404.slimefun.stackingmachine.config.GeneratorManager
+import top.e404.slimefun.stackingmachine.config.Progress
+import top.e404.slimefun.stackingmachine.config.TemplateManager
+import top.e404.slimefun.stackingmachine.config.stacking
 import top.e404.slimefun.stackingmachine.menu.MenuManager
 import top.e404.slimefun.stackingmachine.menu.machine.MachineMenu
 import top.e404.slimefun.stackingmachine.menu.machine.RecipesMenu
@@ -76,9 +81,14 @@ object StackingGenerator : SlimefunItem(
         private val message: String,
     ) {
         /**
-         * 挂起
+         * 尚未配置
          */
         UNINITIALIZED(Material.ORANGE_STAINED_GLASS_PANE, "&c放置之后尚未配置"),
+
+        /**
+         * 挂起
+         */
+        IDLE(Material.PINK_STAINED_GLASS_PANE, "&c由于产物输出阻塞而挂起"),
 
         /**
          * 空机器
@@ -256,6 +266,36 @@ object StackingGenerator : SlimefunItem(
                 // 正在发电
                 val progress = Data.config[b.location]
                 if (progress != null) {
+                    // 输出阻塞
+                    if (progress.progress == -1) {
+                        // 尝试输出
+                        run {
+                            val result = progress.output.mapNotNull {
+                                root.addItemStack(it)
+                                if (it.amount != 0) it else null
+                            }.filter { it.type != Material.AIR }
+                            if (result.isEmpty()) {
+                                Data.config.remove(b.location)
+                                PL.debug { "完成" }
+                                return
+                            }
+                            progress.output = result
+                        }
+                        updateMachineState(
+                            MachineState.IDLE,
+                            buildList {
+                                add(Component.text("&c剩余产物:".color()))
+                                progress.output
+                                    .map { it.display to it.amount }
+                                    .groupBy { it.first }
+                                    .map { (k, v) -> k to v.sumOf { it.second } }
+                                    .forEach { (display, amount) ->
+                                        add(display.append(Component.text("&f x ".color())).append(Component.text(amount)))
+                                    }
+                            }
+                        )
+                        return
+                    }
                     // 存电
                     var push = progress.recipe.energy * progress.magnification
                     for ((location, capacitor) in energyNet.capacitors.entries) {
@@ -292,9 +332,15 @@ object StackingGenerator : SlimefunItem(
 
                     // 完成
                     if (progress.progress >= progress.recipe.duration) {
-                        progress.output.forEach {
+                        val result = progress.output.mapNotNull {
                             root.addItemStack(it)
-                            if (it.amount != 0) b.world.dropItem(b.location, it)
+                            if (it.amount != 0) it else null
+                        }.filter { it.type != Material.AIR }
+                        if (result.isNotEmpty()) {
+                            progress.output = result
+                            progress.progress = -1
+                            PL.debug { "阻塞" }
+                            return
                         }
                         Data.config.remove(b.location)
                         PL.debug { "完成" }
@@ -441,16 +487,7 @@ object StackingGenerator : SlimefunItem(
                     Data.config[b.location] = Progress(1, r, output, display, magnification)
 
                     val lore = buildList {
-                        add(
-                            Component.text(
-                                "&f进度: 1 / ${r.duration} (${
-                                    String.format(
-                                        "%.2f",
-                                        100.0 / r.duration
-                                    )
-                                }%)".color()
-                            )
-                        )
+                        add(Component.text("&f进度: 1 / ${r.duration} (${String.format("%.2f", 100.0 / r.duration)}%)".color()))
                         addAll(display)
                     }
                     updateMachineState(MachineState.RUN, lore)
@@ -498,16 +535,7 @@ object StackingGenerator : SlimefunItem(
                 Data.config[b.location] = Progress(1, recipe, output, display, magnification)
 
                 val lore = buildList {
-                    add(
-                        Component.text(
-                            "&f进度: 1 / ${recipe.duration} (${
-                                String.format(
-                                    "%.2f",
-                                    100.0 / recipe.duration
-                                )
-                            }%)".color()
-                        )
-                    )
+                    add(Component.text("&f进度: 1 / ${recipe.duration} (${String.format("%.2f", 100.0 / recipe.duration)}%)".color()))
                     addAll(display)
                 }
                 updateMachineState(MachineState.RUN, lore)
@@ -584,7 +612,7 @@ object StackingGenerator : SlimefunItem(
     private fun searchNetwork(location: Location): Pair<Location, NetworkRoot>? {
         val networkRoots = NetworkController.getNetworks().entries
         for (face in listOf(
-            BlockFace.UP,  BlockFace.DOWN,
+            BlockFace.UP, BlockFace.DOWN,
             BlockFace.NORTH, BlockFace.WEST,
             BlockFace.SOUTH, BlockFace.EAST,
         )) {

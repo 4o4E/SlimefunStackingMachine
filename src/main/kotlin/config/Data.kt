@@ -26,7 +26,7 @@ object Data : KtxMapConfig<Location, Progress>(
 data class Progress(
     var progress: Int,
     val recipe: TemplateRecipe,
-    val output: List<@Serializable(ItemStackMinSerialization::class) ItemStack>,
+    var output: List<@Serializable(ItemStackMinSerialization::class) ItemStack>,
     val display: List<@Serializable(ComponentSerializer::class) Component>,
     val magnification: Int,
 )
