@@ -14,8 +14,8 @@ import top.e404.eplugin.menu.Displayable
 import top.e404.eplugin.table.chooseBy
 import top.e404.eplugin.util.buildItemStack
 import top.e404.eplugin.util.materialOf
-import top.e404.slimefun.stackingmachine.MiHook
-import top.e404.slimefun.stackingmachine.SfHook
+import top.e404.slimefun.stackingmachine.hook.MiHook
+import top.e404.slimefun.stackingmachine.hook.SfHook
 
 /**
  * 配方物品

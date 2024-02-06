@@ -10,7 +10,7 @@ import org.bukkit.block.Block
 import org.bukkit.inventory.ItemStack
 import top.e404.eplugin.config.serialization.IntRangeSerialization
 import top.e404.eplugin.util.materialOf
-import top.e404.slimefun.stackingmachine.SfHook
+import top.e404.slimefun.stackingmachine.hook.SfHook
 
 @Serializable
 sealed interface RecipeCondition {

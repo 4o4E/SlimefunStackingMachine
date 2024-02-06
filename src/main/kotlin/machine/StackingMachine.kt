@@ -36,10 +36,10 @@ import top.e404.eplugin.util.asString
 import top.e404.eplugin.util.buildItemStack
 import top.e404.eplugin.util.editItemMeta
 import top.e404.eplugin.util.emptyItem
-import top.e404.slimefun.stackingmachine.DENY_TOUCH
+import top.e404.slimefun.stackingmachine.menu.DENY_TOUCH
 import top.e404.slimefun.stackingmachine.PL
-import top.e404.slimefun.stackingmachine.SfHook
-import top.e404.slimefun.stackingmachine.buildMenu
+import top.e404.slimefun.stackingmachine.hook.SfHook
+import top.e404.slimefun.stackingmachine.menu.buildMenu
 import top.e404.slimefun.stackingmachine.config.Data
 import top.e404.slimefun.stackingmachine.config.Progress
 import top.e404.slimefun.stackingmachine.config.TemplateManager
@@ -259,13 +259,13 @@ object StackingMachine : SlimefunItem(
                     return
                 }
                 val (rootLocation, root) = search
-                PL.debug { "找到网络: ${rootLocation.asString}" }
+                PL.debug(b.location) { "找到网络: ${rootLocation.asString}" }
                 val energyNet = Slimefun.getNetworkManager()
                     .getNetworkFromLocation(b.location, EnergyNet::class.java)
                     .orElse(null)
                 if (energyNet == null) {
                     updateMachineState(MachineState.DISCONNECT_TO_ENERGY)
-                    PL.debug { "与电网断开连接" }
+                    PL.debug(b.location) { "与电网断开连接" }
                     return
                 }
 
@@ -282,7 +282,7 @@ object StackingMachine : SlimefunItem(
                             }.filter { it.type != Material.AIR }
                             if (result.isEmpty()) {
                                 Data.config.remove(b.location)
-                                PL.debug { "完成" }
+                                PL.debug(b.location) { "完成" }
                                 return
                             }
                             progress.output = result
@@ -318,7 +318,7 @@ object StackingMachine : SlimefunItem(
                             "电容总储电量: $totalEnergy",
                             "&f总耗电: ${progress.recipe.energy * progress.magnification * progress.recipe.duration}"
                         )
-                        PL.debug { "电力不足, 配方每tick需要${progress.recipe.energy} * ${progress.magnification} = ${progress.recipe.energy * progress.magnification}, 但是电网中只有${totalEnergy}" }
+                        PL.debug(b.location) { "电力不足, 配方每tick需要${progress.recipe.energy} * ${progress.magnification} = ${progress.recipe.energy * progress.magnification}, 但是电网中只有${totalEnergy}" }
                         return
                     }
                     // 取电
@@ -329,12 +329,12 @@ object StackingMachine : SlimefunItem(
                         // 不够吃
                         if (take > total) {
                             take -= total
-                            PL.debug { "从${location.asString}中消耗电量: $total" }
+                            PL.debug(b.location) { "从${location.asString}中消耗电量: $total" }
                             capacitor.removeCharge(location, total)
                             continue
                         }
                         // 吃不完
-                        PL.debug { "从${location.asString}中消耗电量: $take" }
+                        PL.debug(b.location) { "从${location.asString}中消耗电量: $take" }
                         capacitor.removeCharge(location, take)
                         break
                     }
@@ -350,7 +350,7 @@ object StackingMachine : SlimefunItem(
                         addAll(progress.display)
                     }
                     updateMachineState(MachineState.RUN, lore)
-                    PL.debug {
+                    PL.debug(b.location) {
                         val percentage = String.format("%.2f", 100.0 * progress.progress / progress.recipe.duration)
                         "进度: ${progress.progress} / ${progress.recipe.duration} ($percentage%)"
                     }
@@ -364,11 +364,11 @@ object StackingMachine : SlimefunItem(
                         if (result.isNotEmpty()) {
                             progress.output = result
                             progress.progress = -1
-                            PL.debug { "阻塞" }
+                            PL.debug(b.location) { "阻塞" }
                             return
                         }
                         Data.config.remove(b.location)
-                        PL.debug { "完成" }
+                        PL.debug(b.location) { "完成" }
                         return
                     }
                     return
@@ -382,14 +382,14 @@ object StackingMachine : SlimefunItem(
                     val countBefore = config.count
                     if (input.type == Material.AIR) return@run
                     // 拒绝非机器/没有配方的机器
-                    val inputMachineId = validMachine(input)
+                    val inputMachineId = getByItem(input)?.id
                     if (inputMachineId == null) {
-                        PL.debug { "批量堆叠机器拒绝非机器的物品${input.type.name}" }
+                        PL.debug(b.location) { "批量堆叠机器拒绝非机器的物品${input.type.name}" }
                         return@run
                     }
                     // 不同机器不合并
                     if (machine != null && countBefore != 0 && machine != inputMachineId) {
-                        PL.debug { "批量堆叠机器拒绝不同的机器$inputMachineId != $machine" }
+                        PL.debug(b.location) { "批量堆叠机器拒绝不同的机器$inputMachineId != $machine" }
                         return@run
                     }
                     // 新机器
@@ -397,14 +397,14 @@ object StackingMachine : SlimefunItem(
                         selfBlockMenu.toInventory().setItem(inputSlot, emptyItem)
                         config.id = inputMachineId
                         config.count = input.amount
-                        PL.debug { "批量堆叠机器重置模拟机器$inputMachineId" }
+                        PL.debug(b.location) { "批量堆叠机器重置模拟机器$inputMachineId" }
                         return@run
                     }
                     // 合并机器
                     selfBlockMenu.toInventory().setItem(inputSlot, emptyItem)
                     config.id = inputMachineId
                     config.count = countBefore + input.amount
-                    PL.debug { "批量堆叠机器合并模拟机器$inputMachineId x ($countBefore + ${input.amount})" }
+                    PL.debug(b.location) { "批量堆叠机器合并模拟机器$inputMachineId x ($countBefore + ${input.amount})" }
                 }
 
                 // 检查机器输出
@@ -417,7 +417,7 @@ object StackingMachine : SlimefunItem(
                         if (internalId == null || config.count == 0) {
                             updateMachineState(MachineState.EMPTY_MACHINE)
                             updateStorageState(null, 0)
-                            PL.debug { "空机器" }
+                            PL.debug(b.location) { "空机器" }
                             return
                         }
                         val machine = getById(internalId)!!.item.clone()
@@ -432,12 +432,12 @@ object StackingMachine : SlimefunItem(
                     val outputItemId = getByItem(output)?.id
                     // 输出槽不是粘液科技机器
                     if (outputItemId == null) {
-                        PL.debug { "输出槽不是粘液科技机器" }
+                        PL.debug(b.location) { "输出槽不是粘液科技机器" }
                         if (config.id == null) {
                             // 空机器
                             updateMachineState(MachineState.EMPTY_MACHINE)
                             updateStorageState(null, 0)
-                            PL.debug { "空机器" }
+                            PL.debug(b.location) { "空机器" }
                             return
                         }
                         return@run config.id!! to config.count
@@ -448,7 +448,7 @@ object StackingMachine : SlimefunItem(
                     // 有内部缓存 以内部缓存为准
                     // 输出格是其他机器
                     if (outputItemId != internalId) {
-                        PL.debug { "输出槽有不同机器" }
+                        PL.debug(b.location) { "输出槽有不同机器" }
                         return@run internalId to config.count
                     }
                     // 输出格是同种物品
@@ -470,12 +470,12 @@ object StackingMachine : SlimefunItem(
                 }
                 if (count == 0) {
                     config.id = null
-                    PL.debug { "空机器" }
+                    PL.debug(b.location) { "空机器" }
                     updateStorageState(null, 0)
                     updateMachineState(MachineState.EMPTY_MACHINE)
                     return
                 }
-                PL.debug { "计算完成: ${internalMachineId}x${count}" }
+                PL.debug(b.location) { "计算完成: ${internalMachineId}x${count}" }
                 updateStorageState(internalMachineId, count)
                 // config.id = internalMachineId
                 // config.count = count
@@ -489,7 +489,7 @@ object StackingMachine : SlimefunItem(
                 val machineTemplate = TemplateManager.templates[internalMachineId]
                 if (machineTemplate == null) {
                     updateMachineState(MachineState.UNSUPPORTED_MACHINE)
-                    PL.debug { "未定义的机器" }
+                    PL.debug(b.location) { "未定义的机器" }
                     return
                 }
 
@@ -500,7 +500,7 @@ object StackingMachine : SlimefunItem(
                         recipe.conditions.all { it.condition(b, root) }
                     } ?: run {
                         updateMachineState(MachineState.LAKE_TEMPLATE)
-                        PL.debug { "缺少模板" }
+                        PL.debug(b.location) { "缺少模板" }
                         return
                     }
 
@@ -508,7 +508,7 @@ object StackingMachine : SlimefunItem(
                     val magnification = count
                     val display = r.display(magnification)
                     val output = r.getResult(magnification)
-                    PL.debug { "配方输出: $output" }
+                    PL.debug(b.location) { "配方输出: $output" }
                     Data.config[b.location] = Progress(1, r, output, display, magnification)
 
                     val lore = buildList {
@@ -523,7 +523,7 @@ object StackingMachine : SlimefunItem(
                 }
                 if (recipe == null) {
                     updateMachineState(MachineState.UNKNOWN_RECIPE)
-                    PL.debug { "未知配方" }
+                    PL.debug(b.location) { "未知配方" }
                     return
                 }
 
@@ -533,7 +533,7 @@ object StackingMachine : SlimefunItem(
                     val entry = allNetworkItems.entries.firstOrNull { (item) -> recipeItem.match(item) }
                     if (entry == null) {
                         updateMachineState(MachineState.LAKE_MATERIAL)
-                        PL.debug { "缺少材料: $recipeItem" }
+                        PL.debug(b.location) { "缺少材料: $recipeItem" }
                         return
                     }
                     val (item, networkCount) = entry
@@ -542,11 +542,11 @@ object StackingMachine : SlimefunItem(
                 val magnification = min(calculatedInput.minOf { it.third }, count)
                 if (magnification <= 0) {
                     updateMachineState(MachineState.LAKE_MATERIAL)
-                    PL.debug { "缺少材料" }
+                    PL.debug(b.location) { "缺少材料" }
                     return
                 }
 
-                PL.debug { "倍率: $magnification" }
+                PL.debug(b.location) { "倍率: $magnification" }
 
                 // 抽取原料
                 for ((recipeItem, input) in calculatedInput) {
@@ -556,7 +556,7 @@ object StackingMachine : SlimefunItem(
                 // 开始合成
                 val display = recipe.display(magnification)
                 val output = recipe.getResult(magnification)
-                PL.debug { "配方输出: $output" }
+                PL.debug(b.location) { "配方输出: $output" }
                 Data.config[b.location] = Progress(1, recipe, output, display, magnification)
 
                 val lore = buildList {
@@ -609,22 +609,22 @@ object StackingMachine : SlimefunItem(
                 val config = BlockStorage.getLocationInfo(e.block.location)
                 val id = config.id
                 if (id == null) {
-                    PL.debug { "玩家${e.player.name}破坏没有指定机器的批量堆叠机器${e.block.location.asString}" }
-                    PL.debug { "掉落: $drops" }
+                    PL.debug(e.block.location) { "玩家${e.player.name}破坏没有指定机器的批量堆叠机器${e.block.location.asString}" }
+                    PL.debug(e.block.location) { "掉落: $drops" }
                     return
                 }
                 val count = config.count
                 val slimefunItem = getById(id)
                 if (slimefunItem == null) {
-                    PL.debug { "玩家${e.player.name}破坏批量堆叠机器${e.block.location.asString}时无法找到${id}x${count}" }
-                    PL.debug { "掉落: $drops" }
+                    PL.debug(e.block.location) { "玩家${e.player.name}破坏批量堆叠机器${e.block.location.asString}时无法找到${id}x${count}" }
+                    PL.debug(e.block.location) { "掉落: $drops" }
                     return
                 }
                 repeat(count / slimefunItem.item.maxStackSize) {
                     drops.add(slimefunItem.item.clone().apply { amount = maxStackSize })
                 }
                 drops.add(slimefunItem.item.clone().apply { amount = count % slimefunItem.item.maxStackSize })
-                PL.debug { "掉落: $drops" }
+                PL.debug(e.block.location) { "掉落: $drops" }
             }
         }
 
@@ -645,15 +645,6 @@ object StackingMachine : SlimefunItem(
             networkRoots.firstOrNull { (_, v) -> l in v.nodeLocations }?.let { return it.toPair() }
         }
         return null
-    }
-
-    fun validMachine(itemStack: ItemStack): String? {
-        val byItem = getByItem(itemStack)
-        if (byItem == null) {
-            PL.debug { "${itemStack.type.name}不是粘液科技机器" }
-            return null
-        }
-        return byItem.id
     }
 
     override fun getInputSlots() = intArrayOf()

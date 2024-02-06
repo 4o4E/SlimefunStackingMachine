@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATION", "UNUSED")
 
-package top.e404.slimefun.stackingmachine
+package top.e404.slimefun.stackingmachine.menu
 
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils
@@ -16,8 +16,7 @@ data class MenuTemplateCache(
     val slots: MutableList<Int> = mutableListOf()
 )
 
-data class MenuCache(val rows: Int, val title: String, val map: MutableMap<Char, MenuTemplateCache>) :
-    Map<Char, MenuTemplateCache> by map {
+data class MenuCache(val rows: Int, val title: String, val map: MutableMap<Char, MenuTemplateCache>) : Map<Char, MenuTemplateCache> by map {
     fun forEach(template: Char, block: (slot: Int, item: ItemStack?, handler: ChestMenu.MenuClickHandler?) -> Unit) {
         val cache = map[template] ?: return
         val (item, handler) = cache.template ?: return
@@ -49,7 +48,6 @@ data class MenuCache(val rows: Int, val title: String, val map: MutableMap<Char,
     }
 }
 
-val DO_NOTHING_HANDLER = ChestMenu.MenuClickHandler { _, _, _, _ -> true }
 val DENY_TOUCH inline get() = ChestMenuUtils.getEmptyClickHandler()
 
 fun buildMenu(

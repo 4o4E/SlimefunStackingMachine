@@ -9,7 +9,7 @@ import top.e404.eplugin.config.KtxConfig.Companion.defaultYaml
 import top.e404.eplugin.config.KtxMultiFileConfig
 import top.e404.eplugin.menu.Displayable
 import top.e404.slimefun.stackingmachine.PL
-import top.e404.slimefun.stackingmachine.SfHook
+import top.e404.slimefun.stackingmachine.hook.SfHook
 import top.e404.slimefun.stackingmachine.template.TemplateRecipe
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeLocation
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeType
