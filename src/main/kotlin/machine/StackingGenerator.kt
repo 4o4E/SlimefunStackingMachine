@@ -504,7 +504,11 @@ object StackingGenerator : SlimefunItem(
 
                 val allNetworkItems = root.allNetworkItems
                 // 批量合成的最大倍数
-                val calculatedInput = recipe.input.map { recipeItem ->
+                val calculatedInput = recipe.input.groupBy {
+                    it.type to it.id
+                }.values.map { list ->
+                    list.first().withAmount(list.sumOf { it.amount })
+                }.map { recipeItem ->
                     val entry = allNetworkItems.entries.firstOrNull { (item) -> recipeItem.match(item) }
                     if (entry == null) {
                         updateMachineState(MachineState.LAKE_MATERIAL)

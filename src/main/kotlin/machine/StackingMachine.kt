@@ -36,15 +36,15 @@ import top.e404.eplugin.util.asString
 import top.e404.eplugin.util.buildItemStack
 import top.e404.eplugin.util.editItemMeta
 import top.e404.eplugin.util.emptyItem
-import top.e404.slimefun.stackingmachine.menu.DENY_TOUCH
 import top.e404.slimefun.stackingmachine.PL
-import top.e404.slimefun.stackingmachine.hook.SfHook
-import top.e404.slimefun.stackingmachine.menu.buildMenu
 import top.e404.slimefun.stackingmachine.config.Data
 import top.e404.slimefun.stackingmachine.config.Progress
 import top.e404.slimefun.stackingmachine.config.TemplateManager
 import top.e404.slimefun.stackingmachine.config.stacking
+import top.e404.slimefun.stackingmachine.hook.SfHook
+import top.e404.slimefun.stackingmachine.menu.DENY_TOUCH
 import top.e404.slimefun.stackingmachine.menu.MenuManager
+import top.e404.slimefun.stackingmachine.menu.buildMenu
 import top.e404.slimefun.stackingmachine.menu.machine.MachineMenu
 import top.e404.slimefun.stackingmachine.menu.machine.RecipesMenu
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeType
@@ -529,7 +529,12 @@ object StackingMachine : SlimefunItem(
 
                 val allNetworkItems = root.allNetworkItems
                 // 批量合成的最大倍数
-                val calculatedInput = recipe.input.map { recipeItem ->
+                
+                val calculatedInput = recipe.input.groupBy {
+                    it.type to it.id
+                }.values.map { list ->
+                    list.first().withAmount(list.sumOf { it.amount })
+                }.map { recipeItem ->
                     val entry = allNetworkItems.entries.firstOrNull { (item) -> recipeItem.match(item) }
                     if (entry == null) {
                         updateMachineState(MachineState.LAKE_MATERIAL)

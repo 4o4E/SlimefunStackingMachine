@@ -64,6 +64,8 @@ sealed interface ExactRecipeItem : RecipeItem {
     fun match(item: ItemStack): Boolean
 
     override fun exact() = this
+    
+    fun withAmount(amount: Int): ExactRecipeItem
 }
 
 /**
@@ -114,6 +116,7 @@ data class SfRecipeItem(
     override fun display(magnification: Int) = Component.text("${display ?: sfItem.itemName}x${amount * magnification}")
 
     override val item get() = itemTemplate.clone()
+    override fun withAmount(amount: Int) = copy(amount = amount)
     override fun valid(location: RecipeLocation) = buildList {
         val l = location
         if (amount <= 0) add(l to "amount必须大于0")
@@ -148,6 +151,7 @@ data class McRecipeItem(
         .append(Component.text("x${amount * magnification}"))
 
     override val item get() = itemTemplate.clone()
+    override fun withAmount(amount: Int) = copy(amount = amount)
     override fun valid(location: RecipeLocation) = buildList {
         if (amount <= 0) add(location to "amount必须大于0")
         if (weight < 1) add(location to "weight必须大于0")
