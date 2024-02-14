@@ -31,7 +31,6 @@ import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 import top.e404.eplugin.EPlugin.Companion.color
-import top.e404.eplugin.adventure.display
 import top.e404.eplugin.util.asString
 import top.e404.eplugin.util.buildItemStack
 import top.e404.eplugin.util.editItemMeta
@@ -275,10 +274,23 @@ object StackingMachine : SlimefunItem(
                     // 输出阻塞
                     if (progress.progress == -1) {
                         // 尝试输出
-                        val result = progress.output.mapNotNull {
-                            root.addItemStack(it)
-                            if (it.amount != 0) it else null
-                        }.filter { it.type != Material.AIR }
+                        val result = progress.output.mapNotNull { exact ->
+                            var rest = exact.amount
+                            val template = exact.getItemSingle()
+                            repeat(exact.amount / template.maxStackSize) {
+                                val item = template.apply { amount = template.maxStackSize }
+                                root.addItemStack(item)
+                                if (item.amount == 0) {
+                                    rest -= template.maxStackSize
+                                } else {
+                                    // 有没有推送完的物品
+                                    return@mapNotNull exact.withAmount(rest + item.amount)
+                                }
+                            }
+                            val item = template.apply { amount = rest % template.maxStackSize }
+                            root.addItemStack(item)
+                            return@mapNotNull if (item.amount != 0) exact.withAmount(rest + item.amount) else null
+                        }
                         if (result.isEmpty()) {
                             Data.config.remove(b.location)
                             PL.debug(b.location) { "完成" }
@@ -289,13 +301,9 @@ object StackingMachine : SlimefunItem(
                             MachineState.IDLE,
                             buildList {
                                 add(Component.text("&c剩余产物:".color()))
-                                progress.output
-                                    .map { it.display to it.amount }
-                                    .groupBy { it.first }
-                                    .map { (k, v) -> k to v.sumOf { it.second } }
-                                    .forEach { (display, amount) ->
-                                        add(display.append(Component.text("&f x ".color())).append(Component.text(amount)))
-                                    }
+                                progress.output.forEach { exact ->
+                                    add((exact.getItemSingle().displayName()).append(Component.text("&f x ".color())).append(Component.text(exact.amount)))
+                                }
                             }
                         )
                         return
@@ -355,10 +363,23 @@ object StackingMachine : SlimefunItem(
 
                     // 完成
                     if (progress.progress >= progress.recipe.duration) {
-                        val result = progress.output.mapNotNull {
-                            root.addItemStack(it)
-                            if (it.amount != 0) it else null
-                        }.filter { it.type != Material.AIR }
+                        val result = progress.output.mapNotNull { exact ->
+                            var rest = exact.amount
+                            val template = exact.getItemSingle()
+                            repeat(exact.amount / template.maxStackSize) {
+                                val item = template.apply { amount = template.maxStackSize }
+                                root.addItemStack(item)
+                                if (item.amount == 0) {
+                                    rest -= template.maxStackSize
+                                } else {
+                                    // 有没有推送完的物品
+                                    return@mapNotNull exact.withAmount(rest + item.amount)
+                                }
+                            }
+                            val item = template.apply { amount = rest % template.maxStackSize }
+                            root.addItemStack(item)
+                            return@mapNotNull if (item.amount != 0) exact.withAmount(rest + item.amount) else null
+                        }
                         if (result.isNotEmpty()) {
                             progress.output = result
                             progress.progress = -1
@@ -527,7 +548,7 @@ object StackingMachine : SlimefunItem(
 
                 val allNetworkItems = root.allNetworkItems
                 // 批量合成的最大倍数
-                
+
                 val calculatedInput = recipe.input.groupBy {
                     it.type to it.id
                 }.values.map { list ->
