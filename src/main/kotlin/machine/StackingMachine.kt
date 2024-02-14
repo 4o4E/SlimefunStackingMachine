@@ -275,18 +275,16 @@ object StackingMachine : SlimefunItem(
                     // 输出阻塞
                     if (progress.progress == -1) {
                         // 尝试输出
-                        run {
-                            val result = progress.output.mapNotNull {
-                                root.addItemStack(it)
-                                if (it.amount != 0) it else null
-                            }.filter { it.type != Material.AIR }
-                            if (result.isEmpty()) {
-                                Data.config.remove(b.location)
-                                PL.debug(b.location) { "完成" }
-                                return
-                            }
-                            progress.output = result
+                        val result = progress.output.mapNotNull {
+                            root.addItemStack(it)
+                            if (it.amount != 0) it else null
+                        }.filter { it.type != Material.AIR }
+                        if (result.isEmpty()) {
+                            Data.config.remove(b.location)
+                            PL.debug(b.location) { "完成" }
+                            return
                         }
+                        progress.output = result
                         updateMachineState(
                             MachineState.IDLE,
                             buildList {
