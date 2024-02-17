@@ -41,6 +41,9 @@ sealed interface RecipeItem : Displayable {
     fun valid(location: RecipeLocation): List<Pair<RecipeLocation, String>>
 
     fun exact(): ExactRecipeItem
+    
+    fun match(item: ItemStack): Boolean
+    fun similar(item: ItemStack): ItemStack?
 }
 
 /**
@@ -61,7 +64,7 @@ sealed interface ExactRecipeItem : RecipeItem {
     /**
      * 检测物品是否匹配
      */
-    fun match(item: ItemStack): Boolean
+    override fun match(item: ItemStack): Boolean
 
     override fun exact() = this
     
@@ -97,6 +100,10 @@ data class WeightRecipeItem(
         else list.flatMapIndexed { index, exact -> exact.valid(location.copy(weightIndex = index)) }
 
     override fun exact() = list.chooseBy { it.weight }
+
+    override fun match(item: ItemStack) = list.any { it.match(item) }
+
+    override fun similar(item: ItemStack) = list.firstNotNullOfOrNull { it.similar(item) }
 }
 
 @Serializable
@@ -123,6 +130,8 @@ data class SfRecipeItem(
         if (weight < 1) add(l to "weight必须大于0")
         if (SfHook.getItem(id) == null) add(l to "无效slimefun物品id: $id")
     }
+
+    override fun similar(item: ItemStack) = if (item.type == itemTemplate.type) itemTemplate.clone() else null
 }
 
 @Serializable
@@ -157,4 +166,6 @@ data class McRecipeItem(
         if (weight < 1) add(location to "weight必须大于0")
         if (materialOf(id) == null) add(location to "无效物品id: $id")
     }
+
+    override fun similar(item: ItemStack) = if (item.type.name.equals(id, true)) getItemSingle() else null
 }

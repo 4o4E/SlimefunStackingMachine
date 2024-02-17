@@ -1,11 +1,14 @@
 package top.e404.slimefun.stackingmachine.command
 
+import io.github.sefiraat.networks.network.NetworkRoot
+import io.github.sefiraat.networks.slimefun.network.NetworkController
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun
 import kotlinx.serialization.Serializable
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer
 import me.mrCookieSlime.Slimefun.api.BlockStorage
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.block.BlockFace
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -15,11 +18,13 @@ import top.e404.eplugin.config.KtxConfig
 import top.e404.eplugin.util.forEachOnline
 import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.config.Config
+import top.e404.slimefun.stackingmachine.config.Data
 import top.e404.slimefun.stackingmachine.config.GeneratorManager
 import top.e404.slimefun.stackingmachine.config.Lang
 import top.e404.slimefun.stackingmachine.config.TemplateManager
 import top.e404.slimefun.stackingmachine.debug.MachineLogger
 import top.e404.slimefun.stackingmachine.hook.SfHook
+import top.e404.slimefun.stackingmachine.machine.exportItem
 import top.e404.slimefun.stackingmachine.menu.MenuManager
 import top.e404.slimefun.stackingmachine.menu.machine.MachineMenu
 import top.e404.slimefun.stackingmachine.template.recipe.McRecipeItem
@@ -27,6 +32,8 @@ import top.e404.slimefun.stackingmachine.template.recipe.RecipeItem
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeType
 import top.e404.slimefun.stackingmachine.template.recipe.SfRecipeItem
 import java.io.File
+
+var stop = false
 
 object Commands : ECommandManager(
     PL,
@@ -149,6 +156,35 @@ object Commands : ECommandManager(
             complete: MutableList<String>,
         ) {
             if (args.size == 2) forEachOnline { complete.add(it.name) }
+        }
+    },
+    object : ECommand(PL, "stop", "stop", false, "stackingmachine.admin") {
+        override val usage get() = Lang["plugin_command.usage.stop"]
+        override fun onCommand(sender: CommandSender, args: Array<out String>) {
+            stop = true
+            Data.save(sender)
+            Data.file.renameTo(Data.file.parentFile.resolve("data.backup.json").also(File::deleteRecursively))
+            for ((location, progress) in Data.config.entries) {
+                val restItems = if (progress.progress != -1) {
+                    progress.output
+                } else {
+                    // 尝试处理丢失的nbt
+                    progress.output.map { item ->
+                        if (progress.recipe.output.none { it.match(item) }) progress.recipe.output.firstNotNullOfOrNull { it.similar(item) } ?: item
+                        else item
+                    }
+                }
+                // 放箱子里
+                if (restItems.isNotEmpty()) exportItem(location.block, restItems)
+            }
+            Data.config.clear()
+        }
+    },
+    object : ECommand(PL, "continue", "continue", false, "stackingmachine.admin") {
+        override val usage get() = Lang["plugin_command.usage.continue"]
+        override fun onCommand(sender: CommandSender, args: Array<out String>) {
+            stop = false
+            sender.sendMessage("continued")
         }
     },
 )

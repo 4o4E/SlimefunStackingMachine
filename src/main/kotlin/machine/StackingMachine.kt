@@ -37,6 +37,7 @@ import top.e404.eplugin.util.buildItemStack
 import top.e404.eplugin.util.editItemMeta
 import top.e404.eplugin.util.emptyItem
 import top.e404.slimefun.stackingmachine.PL
+import top.e404.slimefun.stackingmachine.command.stop
 import top.e404.slimefun.stackingmachine.config.Data
 import top.e404.slimefun.stackingmachine.config.Progress
 import top.e404.slimefun.stackingmachine.config.TemplateManager
@@ -85,6 +86,10 @@ object StackingMachine : SlimefunItem(
          * 尚未配置
          */
         UNINITIALIZED(Material.ORANGE_STAINED_GLASS_PANE, "&c放置之后尚未配置"),
+        /**
+         * 暂停
+         */
+        STOP(Material.ORANGE_STAINED_GLASS_PANE, "&c调试中, 暂停工作"),
 
         /**
          * 挂起
@@ -250,6 +255,10 @@ object StackingMachine : SlimefunItem(
                         }
                     } ?: buildItemStack(Material.BLACK_STAINED_GLASS_PANE, name = "&f空机器")
                     CACHE.updateSlots(selfBlockMenu.toInventory(), 'n', item)
+                }
+                if (stop) {
+                    updateMachineState(MachineState.STOP)
+                    return
                 }
 
                 // 检查网络连接
