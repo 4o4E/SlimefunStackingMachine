@@ -5,7 +5,6 @@ import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import top.e404.eplugin.EPlugin.Companion.color
-import top.e404.slimefun.stackingmachine.config.merge
 import top.e404.slimefun.stackingmachine.template.condition.RecipeCondition
 import top.e404.slimefun.stackingmachine.template.recipe.ExactRecipeItem
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeItem
@@ -66,25 +65,22 @@ data class TemplateRecipe(
     }
 
     /**
-     * 生成产物
+     * 生成产物, 按照倍率生成具体产物并合并
      *
      * @param magnification 倍率
+     * @return 合并后的产物, 不会包含AIR
      */
     fun getResult(magnification: Int) = buildList {
         for (recipeItem in output) {
             // 随机产出
             repeat(magnification) {
                 val exact = recipeItem.exact()
-                if (exact.item.type == Material.AIR) return@repeat
-                val single = exact.getItemSingle()
-                repeat(exact.amount / single.maxStackSize) {
-                    add(single.clone().apply { amount = maxStackSize })
-                }
-                val l = exact.amount % single.maxStackSize
-                if (l != 0) add(single.clone().apply { amount = l })
+                if (exact.item.type != Material.AIR) add(exact)
             }
         }
-    }.merge()
+    }.groupBy { it.type to it.id }.values.map { exacts ->
+        exacts.first().withAmount(exacts.sumOf { it.amount })
+    }
 
     fun display(magnification: Int): List<Component> {
         return buildList {
