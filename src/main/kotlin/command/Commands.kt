@@ -1,14 +1,13 @@
+@file:Suppress("DEPRECATION")
+
 package top.e404.slimefun.stackingmachine.command
 
-import io.github.sefiraat.networks.network.NetworkRoot
-import io.github.sefiraat.networks.slimefun.network.NetworkController
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun
 import kotlinx.serialization.Serializable
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer
 import me.mrCookieSlime.Slimefun.api.BlockStorage
 import org.bukkit.Bukkit
 import org.bukkit.Location
-import org.bukkit.block.BlockFace
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -52,8 +51,6 @@ object Commands : ECommandManager(
             val z = zs.toDoubleOrNull() ?: run { PL.sendMsgWithPrefix(sender, usage); return }
             val location = Location(world, x, y, z)
             val state = MachineLogger.switchDebug(location, sender)
-
-            @Suppress("DEPRECATION")
             val itemName = BlockStorage.checkID(location)?.let { SfHook.getItem(it) }?.itemName ?: "无粘液方块"
             PL.sendMsgWithPrefix(sender, "已${if (state) "开启" else "关闭"}对应位置(${itemName}&7)的debug监听")
         }
@@ -165,15 +162,7 @@ object Commands : ECommandManager(
             Data.save(sender)
             Data.file.renameTo(Data.file.parentFile.resolve("data.backup.json").also(File::deleteRecursively))
             for ((location, progress) in Data.config.entries) {
-                val restItems = if (progress.progress != -1) {
-                    progress.output
-                } else {
-                    // 尝试处理丢失的nbt
-                    progress.output.map { item ->
-                        if (progress.recipe.output.none { it.match(item) }) progress.recipe.output.firstNotNullOfOrNull { it.similar(item) } ?: item
-                        else item
-                    }
-                }
+                val restItems = progress.output.map { it.getItemSingle().apply { amount = it.amount } }
                 // 放箱子里
                 if (restItems.isNotEmpty()) exportItem(location.block, restItems)
             }

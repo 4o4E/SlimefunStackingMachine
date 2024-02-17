@@ -2,9 +2,7 @@
 
 package top.e404.slimefun.stackingmachine.machine
 
-import io.github.sefiraat.networks.network.NetworkRoot
 import io.github.sefiraat.networks.network.stackcaches.ItemRequest
-import io.github.sefiraat.networks.slimefun.network.NetworkController
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockBreakHandler
@@ -21,10 +19,8 @@ import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker
 import me.mrCookieSlime.Slimefun.api.BlockStorage
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu
 import net.kyori.adventure.text.Component
-import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block
-import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
@@ -37,15 +33,15 @@ import top.e404.eplugin.util.editItemMeta
 import top.e404.eplugin.util.emptyItem
 import top.e404.slimefun.stackingmachine.PL
 import top.e404.slimefun.stackingmachine.command.stop
-import top.e404.slimefun.stackingmachine.hook.SfHook
-import top.e404.slimefun.stackingmachine.menu.buildMenu
 import top.e404.slimefun.stackingmachine.config.Data
 import top.e404.slimefun.stackingmachine.config.GeneratorManager
 import top.e404.slimefun.stackingmachine.config.Progress
 import top.e404.slimefun.stackingmachine.config.TemplateManager
 import top.e404.slimefun.stackingmachine.config.stacking
+import top.e404.slimefun.stackingmachine.hook.SfHook
 import top.e404.slimefun.stackingmachine.menu.DENY_TOUCH
 import top.e404.slimefun.stackingmachine.menu.MenuManager
+import top.e404.slimefun.stackingmachine.menu.buildMenu
 import top.e404.slimefun.stackingmachine.menu.machine.MachineMenu
 import top.e404.slimefun.stackingmachine.menu.machine.RecipesMenu
 import top.e404.slimefun.stackingmachine.template.recipe.RecipeType
@@ -84,6 +80,7 @@ object StackingGenerator : SlimefunItem(
          * 尚未配置
          */
         UNINITIALIZED(Material.ORANGE_STAINED_GLASS_PANE, "&c放置之后尚未配置"),
+
         /**
          * 暂停
          */
@@ -287,12 +284,12 @@ object StackingGenerator : SlimefunItem(
                                     rest -= template.maxStackSize
                                 } else {
                                     // 有没有推送完的物品
-                                    return@mapNotNull exact.withAmount(rest + item.amount)
+                                    return@mapNotNull exact.withAmount(rest - template.maxStackSize + item.amount)
                                 }
                             }
                             val item = template.apply { amount = rest % template.maxStackSize }
                             root.addItemStack(item)
-                            return@mapNotNull if (item.amount != 0) exact.withAmount(rest + item.amount) else null
+                            return@mapNotNull if (item.amount != 0) exact.withAmount(item.amount) else null
                         }
                         if (result.isEmpty()) {
                             Data.config.remove(b.location)
@@ -636,22 +633,6 @@ object StackingGenerator : SlimefunItem(
         }
 
         addItemHandler(tickHandler, placeHandler, breakHandler)
-    }
-
-    /**
-     * 搜索相邻的网络, 并返回其root位置
-     */
-    private fun searchNetwork(location: Location): Pair<Location, NetworkRoot>? {
-        val networkRoots = NetworkController.getNetworks().entries
-        for (face in listOf(
-            BlockFace.UP, BlockFace.DOWN,
-            BlockFace.NORTH, BlockFace.WEST,
-            BlockFace.SOUTH, BlockFace.EAST,
-        )) {
-            val l = location.clone().add(face.direction)
-            networkRoots.firstOrNull { (_, v) -> l in v.nodeLocations }?.let { return it.toPair() }
-        }
-        return null
     }
 
     override fun getInputSlots() = intArrayOf()

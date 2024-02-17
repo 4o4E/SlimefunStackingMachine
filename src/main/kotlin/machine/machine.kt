@@ -1,10 +1,14 @@
 package top.e404.slimefun.stackingmachine.machine
 
+import io.github.sefiraat.networks.network.NetworkRoot
+import io.github.sefiraat.networks.slimefun.network.NetworkController
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup
 import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack
+import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.block.Block
+import org.bukkit.block.BlockFace
 import org.bukkit.block.Chest
 import org.bukkit.inventory.ItemStack
 import top.e404.eplugin.util.asString
@@ -67,4 +71,22 @@ fun exportItem(b: Block, items: List<ItemStack>) {
             }
         }
     }
+}
+
+
+
+/**
+ * 搜索相邻的网络, 并返回其root位置
+ */
+fun searchNetwork(location: Location): Pair<Location, NetworkRoot>? {
+    val networkRoots = NetworkController.getNetworks().entries
+    for (face in listOf(
+        BlockFace.UP, BlockFace.DOWN,
+        BlockFace.NORTH, BlockFace.WEST,
+        BlockFace.SOUTH, BlockFace.EAST,
+    )) {
+        val l = location.clone().add(face.direction)
+        networkRoots.firstOrNull { (_, v) -> l in v.nodeLocations }?.let { return it.toPair() }
+    }
+    return null
 }
