@@ -156,7 +156,7 @@ data class McRecipeItem(
 
     override fun display(magnification: Int) = (display
         ?.let { Component.text(it) }
-        ?: if (itemTemplate.type == Material.AIR) Component.text("&f空气".color()) else itemTemplate.display)
+        ?: if (itemTemplate.type == Material.AIR) Component.text("&f空气".color) else itemTemplate.display)
         .append(Component.text("x${amount * magnification}"))
 
     override val item get() = itemTemplate.clone()

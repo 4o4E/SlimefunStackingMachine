@@ -83,8 +83,8 @@ class RecipesMenu(val machineInfo: Template, val type: RecipeType, val last: Mac
             Material.CRAFTING_TABLE,
             name = "&6配方",
             lore = listOf(
-                "&f${if (type == RecipeType.MACHINE) "耗电" else "发电"}: ${recipes[menuPage].energy}".color(),
-                "&f${if (type == RecipeType.MACHINE) "合成耗时" else "发电时长"}: ${recipes[menuPage].duration} sf tick".color(),
+                "&f${if (type == RecipeType.MACHINE) "耗电" else "发电"}: ${recipes[menuPage].energy}".color,
+                "&f${if (type == RecipeType.MACHINE) "合成耗时" else "发电时长"}: ${recipes[menuPage].duration} sf tick".color,
             )
         )
     }
@@ -153,15 +153,15 @@ class RecipesMenu(val machineInfo: Template, val type: RecipeType, val last: Mac
         name = "&6条件",
         lore = recipes[menuPage].conditions
             .map { it.display }
-            .ifEmpty { listOf("&f该配方没有条件限制".color()) }.also { println(it) }
+            .ifEmpty { listOf("&f该配方没有条件限制".color) }.also { println(it) }
     ))
     private val message = BgSlot(
         this, buildItemStack(
             Material.CRAFTING_TABLE,
             name = "&6配方",
             lore = listOf(
-                "&f${if (type == RecipeType.MACHINE) "耗电" else "发电"}: ${recipes[menuPage].energy}J".color(),
-                "&f${if (type == RecipeType.MACHINE) "合成耗时" else "发电时长"}: ${recipes[menuPage].duration} sf tick".color(),
+                "&f${if (type == RecipeType.MACHINE) "耗电" else "发电"}: ${recipes[menuPage].energy}J".color,
+                "&f${if (type == RecipeType.MACHINE) "合成耗时" else "发电时长"}: ${recipes[menuPage].duration} sf tick".color,
             )
         )
     )

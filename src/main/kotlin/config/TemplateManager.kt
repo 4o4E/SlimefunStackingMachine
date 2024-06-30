@@ -72,7 +72,7 @@ data class Template(
 
     override val item
         get() = ItemStack(machineItem.item).apply {
-            lore(listOf(Component.text("&f共 &6${recipes.size + empty.size} &f个配方".color())))
+            lore(listOf(Component.text("&f共 &6${recipes.size + empty.size} &f个配方".color)))
         }
     override var needUpdate
         get() = false

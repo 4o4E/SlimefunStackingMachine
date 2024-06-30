@@ -16,9 +16,6 @@ import top.e404.slimefun.stackingmachine.machine.StackingMachine
 import top.e404.slimefun.stackingmachine.menu.MenuManager
 
 class SlimefunStackingMachine : EPlugin() {
-    override val debugPrefix get() = langManager.getOrElse("debug_prefix") { "&7[&bStackingMachineDebug&7]" }
-    override val prefix get() = langManager.getOrElse("prefix") { "&7[&aStackingMachine&7]" }
-
     override var debug: Boolean
         get() = Config.debug
         set(value) {

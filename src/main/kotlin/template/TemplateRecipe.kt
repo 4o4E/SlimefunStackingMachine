@@ -84,12 +84,12 @@ data class TemplateRecipe(
 
     fun display(magnification: Int): List<Component> {
         return buildList {
-            add(Component.text("&f倍率: $magnification".color()))
-            add(Component.text("&f输入:".color()))
+            add(Component.text("&f倍率: $magnification".color))
+            add(Component.text("&f输入:".color))
             for (item in input) {
                 add(item.display(magnification))
             }
-            add(Component.text("&f输出:".color()))
+            add(Component.text("&f输出:".color))
             for (item in output) {
                 add(item.display(magnification))
             }

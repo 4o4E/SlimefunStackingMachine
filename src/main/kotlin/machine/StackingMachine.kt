@@ -58,9 +58,9 @@ object StackingMachine : SlimefunItem(
     SlimefunItemStack(
         "STACKING_MACHINE",
         Material.FURNACE,
-        "&a批量堆叠机器".color(),
-        "&f放几个就有几倍效率".color(),
-        "&f同时也会成倍消耗电能(将从电网的电容中抽取)".color(),
+        "&a批量堆叠机器".color,
+        "&f放几个就有几倍效率".color,
+        "&f同时也会成倍消耗电能(将从电网的电容中抽取)".color,
     ),
     SfRecipeType.ENHANCED_CRAFTING_TABLE,
     arrayOf(
@@ -247,7 +247,7 @@ object StackingMachine : SlimefunItem(
                 fun updateStorageState(id: String?, count: Int) {
                     val item = id?.let {
                         SfHook.getItem(it)?.let { sfi ->
-                            ItemStack(sfi.item).editItemMeta { lore = listOf("&f数量: $count".color()) }
+                            ItemStack(sfi.item).editItemMeta { lore = listOf("&f数量: $count".color) }
                         }
                     } ?: buildItemStack(Material.BLACK_STAINED_GLASS_PANE, name = "&f空机器")
                     CACHE.updateSlots(selfBlockMenu.toInventory(), 'n', item)
@@ -306,9 +306,9 @@ object StackingMachine : SlimefunItem(
                         updateMachineState(
                             MachineState.IDLE,
                             buildList {
-                                add(Component.text("&c剩余产物:".color()))
+                                add(Component.text("&c剩余产物:".color))
                                 progress.output.forEach { exact ->
-                                    add((exact.getItemSingle().displayName()).append(Component.text("&f x ".color())).append(Component.text(exact.amount)))
+                                    add((exact.getItemSingle().displayName()).append(Component.text("&f x ".color)).append(Component.text(exact.amount)))
                                 }
                             }
                         )
@@ -354,11 +354,11 @@ object StackingMachine : SlimefunItem(
 
                     val lore = buildList {
                         val percentage = String.format("%.2f", 100.0 * progress.progress / progress.recipe.duration)
-                        add(Component.text("&f进度: ${progress.progress} / ${progress.recipe.duration} ($percentage%)".color()))
-                        add(Component.text("&f配方耗电: ${progress.recipe.energy}".color()))
-                        add(Component.text("&f堆叠次数: ${progress.magnification}".color()))
-                        add(Component.text("&f当前每tick需要: ${progress.recipe.energy * progress.magnification}".color()))
-                        add(Component.text("&f总耗电: ${progress.recipe.energy * progress.magnification * progress.recipe.duration}".color()))
+                        add(Component.text("&f进度: ${progress.progress} / ${progress.recipe.duration} ($percentage%)".color))
+                        add(Component.text("&f配方耗电: ${progress.recipe.energy}".color))
+                        add(Component.text("&f堆叠次数: ${progress.magnification}".color))
+                        add(Component.text("&f当前每tick需要: ${progress.recipe.energy * progress.magnification}".color))
+                        add(Component.text("&f总耗电: ${progress.recipe.energy * progress.magnification * progress.recipe.duration}".color))
                         addAll(progress.display)
                     }
                     updateMachineState(MachineState.RUN, lore)
@@ -537,7 +537,7 @@ object StackingMachine : SlimefunItem(
                     Data.config[b.location] = Progress(1, r, output, display, magnification)
 
                     val lore = buildList {
-                        add(Component.text("&f进度: 1 / ${r.duration} (${String.format("%.2f", 100.0 / r.duration)}%)".color()))
+                        add(Component.text("&f进度: 1 / ${r.duration} (${String.format("%.2f", 100.0 / r.duration)}%)".color))
                         addAll(display)
                     }
                     updateMachineState(MachineState.RUN, lore)
@@ -590,7 +590,7 @@ object StackingMachine : SlimefunItem(
                 Data.config[b.location] = Progress(1, recipe, output, display, magnification)
 
                 val lore = buildList {
-                    add(Component.text("&f进度: 1 / ${recipe.duration} (${String.format("%.2f", 100.0 / recipe.duration)}%)".color()))
+                    add(Component.text("&f进度: 1 / ${recipe.duration} (${String.format("%.2f", 100.0 / recipe.duration)}%)".color))
                     addAll(display)
                 }
                 updateMachineState(MachineState.RUN, lore)
