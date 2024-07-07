@@ -1,3 +1,7 @@
+# 粘液科技堆叠机器
+
+[关于使用](https://github.com/ytdd9527/SlimefunStackingMachineConfig)
+
 ## TODO
 
 - [x] 淘金机使用
