@@ -1,21 +1,19 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.8.22"
-    kotlin("plugin.serialization") version "1.8.22"
+    kotlin("jvm") version "2.0.0"
+    kotlin("plugin.serialization") version "2.0.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "top.e404"
-version = "1.6.5"
-val epluginVersion = "1.2.0"
+version = "1.7.1"
+val epluginVersion = "1.3.0"
 
 fun kotlinx(id: String, version: String) = "org.jetbrains.kotlinx:kotlinx-$id:$version"
 fun eplugin(id: String, version: String = epluginVersion) = "top.e404:eplugin-$id:$version"
 
 repositories {
-    // sf
-    maven("https://jitpack.io/")
     // spigot
     // maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     // paper
@@ -41,7 +39,7 @@ dependencies {
     implementation(eplugin("hook-slimefun"))
     implementation(eplugin("hook-mmoitems"))
     // sf
-    compileOnly("com.github.StarWishsama:Slimefun4:master-SNAPSHOT")
+    compileOnly("com.github.slimefun:Slimefun:a3ef74c-Beta")
     // networks
     compileOnly("io.github.sefiraat:networks:MODIFIED_1.2.0")
     // mi
