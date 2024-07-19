@@ -141,6 +141,11 @@ object StackingMachine : SlimefunItem(
          * 与电网断开连接
          */
         DISCONNECT_TO_ENERGY(Material.RED_STAINED_GLASS_PANE, "&c与电网断开连接"),
+
+        /**
+         * 放入了错误的物品
+         */
+        ERROR_ITEM(Material.RED_STAINED_GLASS_PANE, "&c请清空机器"),
         ;
 
         fun getDisplay(vararg lore: String) = buildItemStack(material, name = message, lore = lore.toList())
@@ -412,6 +417,11 @@ object StackingMachine : SlimefunItem(
                         PL.debug(b.location) { "批量堆叠机器拒绝非机器的物品${input.type.name}" }
                         return@run
                     }
+                    if (!TemplateManager.templates.containsKey(inputMachineId)) {
+                        updateMachineState(MachineState.ERROR_ITEM)
+                        PL.debug(b.location) { "批量堆叠机器拒绝不支持的机器$inputMachineId" }
+                        return
+                    }
                     // 不同机器不合并
                     if (machine != null && countBefore != 0 && machine != inputMachineId) {
                         PL.debug(b.location) { "批量堆叠机器拒绝不同的机器$inputMachineId != $machine" }
@@ -455,6 +465,13 @@ object StackingMachine : SlimefunItem(
                     }
                     // 输出槽有物品
                     val outputItemId = getByItem(output)?.id
+                    // 输出槽是不支持的机器
+
+                    if (!TemplateManager.templates.containsKey(outputItemId)) {
+                        updateMachineState(MachineState.ERROR_ITEM)
+                        PL.debug(b.location) { "批量堆叠机器拒绝输出堆叠不支持的机器$outputItemId" }
+                        return@run null
+                    }
                     // 输出槽不是粘液科技机器
                     if (outputItemId == null) {
                         PL.debug(b.location) { "输出槽不是粘液科技机器" }
@@ -492,7 +509,7 @@ object StackingMachine : SlimefunItem(
                     config.count = 0
                     config.id = null
                     internalId to output.amount
-                }
+                } ?: return
                 if (count == 0) {
                     config.id = null
                     PL.debug(b.location) { "空机器" }
